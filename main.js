@@ -1,10 +1,12 @@
 var index = 0,
+    identifier,
     register1,
     start,
-    source = '1 + ( 2 * 3 ) + 4'
+    source = 'x := 1 + ( 2 * 3 ) + 4',
+    variables = []
 
 try {
-    expression();
+    statement();
     assert( register1 + ' was the final result' )
 }
 catch ( exception ) {
@@ -66,6 +68,20 @@ function statement() {
               source[ ++index ] === 'i' && source[ ++index ] === 'l' &&
               source[ ++index ] === 'e' ) {
         //
+    }
+    else if ( identifier() ) {
+        // 
+        if ( source[ index ] === ':' && source[ ++index ] === '=' ) {
+            //
+            ++index
+            if ( expression() ) {
+                //
+                assert( identifier + ' will be assigned ' + register1 )
+                variables[ identifier ] = register1
+                return true
+            }
+            else throw 'Expression expected [ ASSIGN ]'
+        }
     }
 }
 
@@ -151,7 +167,7 @@ function expression() {
                     assert( register2 + ' + ' + register1 + ' to be evaluated' )
                     register1 = register2 + register1
                 }
-                else throw 'Unexpected token [ EXPRESSION PLUS ]'
+                else throw 'Unexpected token [ PLUS ]'
             }
             else if ( source[ index ] === '-' ) {
                 ++index
@@ -159,7 +175,7 @@ function expression() {
                     assert( register2 + ' + ' + register1 + ' to be evaluated' )
                     register1 = register2 - register1
                 }
-                else throw 'Unexpected token [ EXPRESSION MINUS ]'
+                else throw 'Unexpected token [ MINUS ]'
             }
         }
         trivia()
@@ -181,7 +197,7 @@ function term() {
                     assert( register2 + ' * ' + register1 + ' to be evaluated' )
                     register1 = register2 * register1
                 }
-                else throw 'Unexpected token [ TERM MULTIPLY ]'
+                else throw 'Unexpected token [ MULTIPLY ]'
             }
             else if ( source[ index ] === '/' ) {
                 ++index
@@ -189,7 +205,7 @@ function term() {
                     assert( register2 + ' / ' + register1 + ' to be evaluated' )
                     register1 = register2 / register1
                 }
-                else throw 'Unexpected token [ TERM DIVIDE ]'
+                else throw 'Unexpected token [ DIVIDE ]'
             }
         }
         trivia()
@@ -248,6 +264,8 @@ function identifier() {
                 source[ index ] >= 'a' && source[ index ] <= 'z' ) {
             ++index
         }
+        identifier = source.substr( start, index )
+        trivia()
         return true
     }
     else {
