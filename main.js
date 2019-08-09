@@ -4,11 +4,10 @@ var index,
     variables = []
 
 function run() {
-    // assert( 'run()' )
     source = document.getElementById( 'source' ).value
     index = 0
     try {
-        statement()
+        statement( true )
     }
     catch ( exception ) {
         assert( exception )
@@ -22,19 +21,18 @@ function assert( message ) {
     document.getElementById( 'output' ).innerHTML += message + '<br>'
 }
 
-function assignment() {
-    var label,
-        start = index
+function assignment( evaluate ) {
+    // assert( 'assignment( ' + evaluate + ' )' )
+    var label, start = index
     trivia()
-    if ( identifier() ) {
+    if ( identifier( evaluate ) ) {
         label = register1
         trivia()
         if ( source[ index ] === ':' && source[ ++index ] === '=' ) {
             ++index
             trivia()
-            if ( expression() ) {
-                assert( label + ' <- ' + register1 )
-                variables[ label ] = register1
+            if ( expression( evaluate ) ) {
+                if ( evaluate ) variables[ label ] = register1
                 return true
             }
             throw 'expression expected after :='
@@ -44,20 +42,21 @@ function assignment() {
     return false
 }
 
-function beginend() {
+function beginend( evaluate ) {
+    // assert( 'beginend( ' + evaluate + ' )' )
     var start = index
     if ( source[   index ] === 'b' && source[ ++index ] === 'e' &&
          source[ ++index ] === 'g' && source[ ++index ] === 'i' &&
          source[ ++index ] === 'n' ) {
         ++index
         if ( trivia() ) {
-            if ( statement() ) {
+            if ( statement( evaluate ) ) {
                 for ( ;; ) {
                     trivia()
                     if ( source[ index ] === ';' ) {
                         ++index
                         trivia()
-                        if ( !statement() ) throw 'statement expected after ;'
+                        if ( !statement( evaluate ) ) throw 'statement expected after ;'
                     }
                     else break
                 }
@@ -75,18 +74,18 @@ function beginend() {
 }
 
 // TODO: missing conditions <=, >=
-function condition() {
-    // assert( 'condition()' )
+function condition( evaluate ) {
+    // assert( 'condition( ' + evaluate + ' )' )
     var register2
     trivia()
-    if ( expression() ) {
+    if ( expression( evaluate ) ) {
         trivia()
         register2 = register1
         if ( source[ index ] === '=' ) {
             ++index
             trivia()
-            if ( expression() ) {
-                register1 = register2 === register1
+            if ( expression( evaluate ) ) {
+                if ( evaluate ) register1 = register2 === register1
                 return true
             }
             throw 'unexpected token after ='
@@ -94,8 +93,8 @@ function condition() {
         else if ( source[ index ] === '#' ) {
             ++index
             trivia()
-            if ( expression() ) {
-                register1 = register2 !== register1
+            if ( expression( evaluate ) ) {
+                if ( evalulate ) register1 = register2 !== register1
                 return true
             }
             throw 'unexpected token after #'
@@ -103,8 +102,8 @@ function condition() {
         else if ( source[ index ] === '<' ) {
             ++index
             trivia()
-            if ( expression() ) {
-                register1 = register2 < register1
+            if ( expression( evaluate ) ) {
+                if ( evalulate ) register1 = register2 < register1
                 return true
             }
             throw 'unexpected token after <'
@@ -112,8 +111,8 @@ function condition() {
         else if ( source[ index ] === '>' ) {
             ++index
             trivia()
-            if ( expression() ) {
-                register1 = register2 > register1
+            if ( expression( evaluate ) ) {
+                if ( evalulate ) register1 = register2 > register1
                 return true
             }
             throw 'unexpected token after >'
@@ -122,14 +121,15 @@ function condition() {
     throw 'unexpected token'
 }
 
-function echo() {
+function echo( evaluate ) {
+    // assert( 'echo( ' + evaluate + ' )' )
     var start = index
     if ( source[   index ] === 'e' && source[ ++index] === 'c' &&
          source[ ++index ] === 'h' && source[ ++index] === 'o' ) {
         ++index
         if ( trivia() ) {
-            if ( expression() ) {
-                assert( register1 )
+            if ( expression( evaluate ) ) {
+                if ( evaluate ) assert( register1 )
                 return true
             }
         }
@@ -139,18 +139,18 @@ function echo() {
     return false
 }
 
-function expression() {
-    // assert( 'expression()' )
+function expression( evaluate ) {
+    // assert( 'expression( ' + evaluate + ' )' )
     var register2
     trivia()
-    if ( term() ) {
+    if ( term( evaluate ) ) {
         for ( ;; ) {
             if ( source[ index ] === '+' ) {
                 ++index
                 register2 = register1
                 trivia()
-                if ( term() ) {
-                    register1 = register2 + register1
+                if ( term( evaluate ) ) {
+                    if ( evaluate ) register1 = register2 + register1
                     continue
                 }
                 throw 'unexpected token after +'
@@ -159,8 +159,8 @@ function expression() {
                 ++index
                 register2 = register1
                 trivia()
-                if ( term() ) {
-                    register1 = register2 - register1
+                if ( term( evaluate ) ) {
+                    if ( evaluate ) register1 = register2 - register1
                     continue
                 }
                 throw 'unexpected token after -'
@@ -172,12 +172,12 @@ function expression() {
     throw 'unexpected token'
 }
 
-function factor() {
-    // assert( 'factor()' )
+function factor( evaluate ) {
+    // assert( 'factor(' + evaluate + ')' )
     var label
     if ( source[ index ] === '(' ) {
         ++index
-        if ( expression() ) {
+        if ( expression( evaluate ) ) {
             if ( source[ index ] === ')' ) {
                 ++index
                 return true
@@ -187,9 +187,7 @@ function factor() {
         throw 'unexpected token'
     }
     else if ( identifier() ) {
-        label = register1
-        register1 = variables[ register1 ] // TODO: add check to see if variable was evern declared
-        assert( label + ' -> ' + register1 )
+        if ( evaluate ) register1 = variables[ register1 ] // TODO: add check to see if variable was evern declared
         return true
     }
     else if ( number() ) {
@@ -216,18 +214,18 @@ function identifier() {
     return false
 }
 
-function ifthen() {
-    // assert( 'ifthen()' )
+function ifthen( evaluate ) {
+    // assert( 'ifthen( ' + evaluate + ' )' )
     var start = index
     if ( source[ index ] === 'i' && source[ ++index ] === 'f' ) {
         ++index
         if ( trivia() ) {
-            if ( condition() ) {
+            if ( condition( evaluate ) ) {
                 if ( source[   index ] === 't' && source[ ++index ] === 'h' &&
-                        source[ ++index ] === 'e' && source[ ++index ] === 'n' ) {
+                     source[ ++index ] === 'e' && source[ ++index ] === 'n' ) {
                     ++index
                     if ( trivia() ) {
-                        if ( statement() ) {
+                        if ( statement( register1 ) ) {
                             return true
                         }
                     }
@@ -248,45 +246,45 @@ function number() {
     if ( source[ index ] >= '0' && source[ index ] <= '9' ) {
         ++index
         while ( source[ index ] >= '0' && source[ index ] <= '9' ) ++index
-        register1 = parseInt( source.substring(start, index) )
+        register1 = parseInt( source.substring( start, index ) )
         return true
     }
     index = start
     return false
 }
 
-function statement() {
-    // assert( 'statement()' )
-    if ( assignment() ) {
+function statement( evaluate ) {
+    // assert( 'statement( ' + evaluate + ' )' )
+    if ( assignment( evaluate ) ) {
         return true
     }
-    else if ( beginend() ) {
+    else if ( beginend( evaluate ) ) {
         return true
     }
-    else if ( echo() ) {
+    else if ( echo( evaluate ) ) {
         return true
     }
-    else if ( ifthen() ) {
+    else if ( ifthen( evaluate ) ) {
         return true
     }
     else {
-        return expression()
+        return expression( evaluate )
     }
 }
 
-function term() {
-    // assert( 'term()' )
+function term( evaluate ) {
+    // assert( 'term( ' + evaluate + ' )' )
     var register2
     trivia()
-    if ( factor() ) {
+    if ( factor( evaluate ) ) {
         for ( ;; ) {
             trivia()
             if ( source[ index ] === '*' ) {
                 ++index
                 register2 = register1
                 trivia()
-                if ( factor() ) {
-                    register1 = register2 * register1
+                if ( factor( evaluate ) ) {
+                    if ( evaluate ) register1 = register2 * register1
                     continue
                 }
                 throw 'unexpected token after *'
@@ -295,8 +293,8 @@ function term() {
                 ++index
                 register2 = register1
                 trivia()
-                if ( factor() ) {
-                    register1 = register2 / register1
+                if ( factor( evaluate ) ) {
+                    if ( evaluate ) register1 = register2 / register1
                     continue
                 }
                 throw 'unexpected token after /'
@@ -320,8 +318,8 @@ function trivia() {
     return false
 }
 
-function whiledo() {
-    // assert( 'whiledo()' )
+function whiledo( evaluate ) {
+    // assert( 'whiledo(' + evaluate ')' )
     var start = index
     if ( source[   index ] === 'w' && source[ ++index ] === 'h' &&
          source[ ++index ] === 'i' && source[ ++index ] === 'l' &&
@@ -329,7 +327,7 @@ function whiledo() {
         ++index
         if ( trivia() ) {
             start = index // <-- reset pointer
-            if ( condition() ) {
+            if ( condition( evaluate ) ) {
                 if ( trivia() ) {
                     if ( source[ index ] === 'd' && source[ ++index ] === 'o' ) {
                         ++index
