@@ -49,7 +49,7 @@ function statement() {
               source[ ++index ] === 'l' && source[ ++index ] === 'l' ) {
         //
     }
-    else if ( source[   index ] === 'i' && source[ ++index ] === 'f' ) {
+    else if ( source[ index ] === 'i' && source[ ++index ] === 'f' ) {
         if ( condition() ) {
             if ( source[   index ] === 't' && source[ ++index ] === 'h' &&
                  source[ ++index ] === 'e' && source[ ++index ] === 'n' ) {
@@ -230,7 +230,7 @@ function number() {
             ++index
         }
         register1 = parseInt( source.substr(start, index) )
-        assert(register1 + ' parsed as number')
+        assert( register1 + ' parsed as number' )
         trivia()
         return true
     }
