@@ -186,17 +186,15 @@ function factor( evaluate ) {
         }
         throw 'unexpected token'
     }
-    else if ( identifier() ) {
+    else if ( identifier( evaluate ) ) {
         if ( evaluate ) register1 = variables[ register1 ] // TODO: add check to see if variable was evern declared
         return true
     }
-    else if ( number() ) {
-        return true
-    }
+    else if ( number( evaluate ) ) return true
     throw 'unexpected token'
 }
 
-function identifier() {
+function identifier( evaluate ) {
     // assert( 'identifier()' )
     var start = index
     if ( source[ index ] >= 'A' && source[ index ] <= 'Z' ||
@@ -207,7 +205,7 @@ function identifier() {
                 source[ index ] >= 'a' && source[ index ] <= 'z' ) {
             ++index
         }
-        register1 = source.substring( start, index )
+        if ( evaluate ) register1 = source.substring( start, index )
         return true
     }
     index = start
@@ -240,36 +238,44 @@ function ifthen( evaluate ) {
     return false
 }
 
-function number() {
+function number( evaluate ) {
     // assert( 'number()' )
     var start = index
-    if ( source[ index ] >= '0' && source[ index ] <= '9' ) {
+    while ( source[ index ] >= '0' && source[ index ] <= '9' ) ++index
+    if ( source[ index ] === '.' ) {
         ++index
-        while ( source[ index ] >= '0' && source[ index ] <= '9' ) ++index
-        register1 = parseInt( source.substring( start, index ) )
+        if ( source[ index ] >= '0' && source[ index ] <= '9' ) {
+            ++index
+            while ( source[ index ] >= '0' && source[ index ] <= '9' ) ++index
+        }
+        else throw 'digits expected after decimal point'
+    }
+    if ( start < index ) {
+        if ( evaluate ) register1 = parseFloat( source.substring( start, index ) )
         return true
     }
-    index = start
     return false
+}
+
+function procedure() {
+    var start = index
+    if ( source[   index ] === 'p' && source[ ++index ] === 'r' &&
+         source[ ++index ] === 'o' && source[ ++index ] === 'c' &&
+         source[ ++index ] === 'e' && source[ ++index ] === 'd' &&
+         source[ ++index ] === 'u' && source[ ++index ] === 'r' &&
+         source[ ++index ] === 'e' ) {
+        //
+    }
 }
 
 function statement( evaluate ) {
     // assert( 'statement( ' + evaluate + ' )' )
-    if ( assignment( evaluate ) ) {
-        return true
-    }
-    else if ( beginend( evaluate ) ) {
-        return true
-    }
-    else if ( echo( evaluate ) ) {
-        return true
-    }
-    else if ( ifthen( evaluate ) ) {
-        return true
-    }
-    else {
-        return expression( evaluate )
-    }
+    if      ( assignment( evaluate ) )   return true
+    else if ( beginend( evaluate ) )     return true
+    else if ( echo( evaluate ) )         return true
+    else if ( ifthen( evaluate ) )       return true
+    else if ( expression( evaluate ) )   return true
+    throw 'unexpected token'
 }
 
 function term( evaluate ) {
