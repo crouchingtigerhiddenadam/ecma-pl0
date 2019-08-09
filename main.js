@@ -7,7 +7,12 @@ function run() {
     // assert( 'run()' )
     source = document.getElementById( 'source' ).value
     index = 0
-    statement()
+    try {
+        statement()
+    }
+    catch ( exception ) {
+        assert( exception )
+    }
 }
 
 document.getElementById( 'run' ).onclick = run
@@ -32,7 +37,7 @@ function assignment() {
                 variables[ label ] = register1
                 return true
             }
-            throw 'expression expected after := ' + source.substr( index, 8 )
+            throw 'expression expected after :='
         }
     }
     index = start
@@ -52,18 +57,18 @@ function beginend() {
                     if ( source[ index ] === ';' ) {
                         ++index
                         trivia()
-                        if ( !statement() ) throw 'statement expected after ; ' + source.substr( index, 8 )
+                        if ( !statement() ) throw 'statement expected after ;'
                     }
                     else break
                 }
                 if ( source[   index ] === 'e' && source[ ++index ] === 'n' && 
-                        source[ ++index ] === 'd' ) {
+                     source[ ++index ] === 'd' ) {
                     ++index
                     return true
                 }
             }
         }
-        throw 'end expected ' + source.substr( index, 8 )
+        throw 'end or ; expected'
     }
     index = start
     return false
@@ -84,7 +89,7 @@ function condition() {
                 register1 = register2 === register1
                 return true
             }
-            throw 'unexpected token after = ' + source.substr( index, 8 )
+            throw 'unexpected token after ='
         }
         else if ( source[ index ] === '#' ) {
             ++index
@@ -93,7 +98,7 @@ function condition() {
                 register1 = register2 !== register1
                 return true
             }
-            throw 'unexpected token after # ' + source.substr( index, 8 )
+            throw 'unexpected token after #'
         }
         else if ( source[ index ] === '<' ) {
             ++index
@@ -102,7 +107,7 @@ function condition() {
                 register1 = register2 < register1
                 return true
             }
-            throw 'unexpected token after < ' + source.substr( index, 8 )
+            throw 'unexpected token after <'
         }
         else if ( source[ index ] === '>' ) {
             ++index
@@ -111,10 +116,10 @@ function condition() {
                 register1 = register2 > register1
                 return true
             }
-            throw 'unexpected token after > ' + source.substr( index, 8 )
+            throw 'unexpected token after >'
         }
     }
-    throw 'unexpected token ' + source.substr( index, 8 )
+    throw 'unexpected token'
 }
 
 function echo() {
@@ -128,7 +133,7 @@ function echo() {
                 return true
             }
         }
-        throw 'expression expected after echo' + source.substr( index, 8 )
+        throw 'expression expected after echo'
     }
     index = start
     return false
@@ -148,7 +153,7 @@ function expression() {
                     register1 = register2 + register1
                     continue
                 }
-                throw 'unexpected token after + ' + source.substr( index, 8 )
+                throw 'unexpected token after +'
             }
             else if ( source[ index ] === '-' ) {
                 ++index
@@ -164,11 +169,12 @@ function expression() {
         }
         return true
     }
-    throw 'unexpected token ' + source.substr( index, 8 )
+    throw 'unexpected token'
 }
 
 function factor() {
     // assert( 'factor()' )
+    var label
     if ( source[ index ] === '(' ) {
         ++index
         if ( expression() ) {
@@ -176,12 +182,12 @@ function factor() {
                 ++index
                 return true
             }
-            throw ') expected ' + source.substr( index, 8 )
+            throw ') expected'
         }
-        throw 'unexpected token ' + source.substr( index, 8 )
+        throw 'unexpected token'
     }
     else if ( identifier() ) {
-        var label = register1
+        label = register1
         register1 = variables[ register1 ] // TODO: add check to see if variable was evern declared
         assert( label + ' -> ' + register1 )
         return true
@@ -189,7 +195,7 @@ function factor() {
     else if ( number() ) {
         return true
     }
-    throw 'unexpected token ' + source.substr( index, 8 )
+    throw 'unexpected token'
 }
 
 function identifier() {
@@ -225,11 +231,11 @@ function ifthen() {
                             return true
                         }
                     }
-                    throw 'statement expected after then' + source.substr( index, 8 )
+                    throw 'statement expected after then'
                 }
-                throw 'then expected after condition ' + source.substr( index, 8 )
+                throw 'then expected after condition'
             }
-            throw 'condition expected after if ' + source.substr( index, 8 )
+            throw 'condition expected after if'
         }
     }
     index = start
@@ -283,7 +289,7 @@ function term() {
                     register1 = register2 * register1
                     continue
                 }
-                throw 'unexpected token after * ' + source.substr( index, 8 )
+                throw 'unexpected token after *'
             }
             else if ( source[ index ] === '/' ) {
                 ++index
@@ -293,13 +299,13 @@ function term() {
                     register1 = register2 / register1
                     continue
                 }
-                throw 'unexpected token after / ' + source.substr( index, 8 )
+                throw 'unexpected token after /'
             }
             else break
         }
         return true
     }
-    throw 'unexpected token ' + source.substr( index, 8 )
+    throw 'unexpected token'
 }
 
 function trivia() {
@@ -332,9 +338,9 @@ function whiledo() {
                         }
                     }
                 }
-                throw 'do expected ' + source.substr( index, 8 )
+                throw 'do expected'
             }
-            throw 'condition expected ' + source.substr( index, 8 )
+            throw 'condition expected'
         }
     }
     index = start
