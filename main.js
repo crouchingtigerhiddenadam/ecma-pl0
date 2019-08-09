@@ -45,7 +45,20 @@ function statement() {
     if ( source[   index ] === 'b' && source[ ++index ] === 'e' &&
          source[ ++index ] === 'g' && source[ ++index ] === 'i' &&
          source[ ++index ] === 'n' ) {
-        // 
+        if ( statement() ) {
+            while ( source[ index ] === ';' ) {
+                ++index
+                if ( statement() ) {
+                    //
+                }
+                else throw 'Statement expected [ BLOCK ]'
+            }
+        }
+        if ( source[   index ] === 'e' && source[ ++index ] === 'n' && 
+             source[ ++index ] === 'd' ) {
+            return true
+        }
+        else throw 'End expected [ BEGIN ]'
     }
     else if ( source[   index ] === 'c' && source[ ++index ] === 'a' &&
               source[ ++index ] === 'l' && source[ ++index ] === 'l' ) {
@@ -265,6 +278,7 @@ function identifier() {
             ++index
         }
         identifier = source.substr( start, index )
+        register1 = variables[ identifier ]
         trivia()
         return true
     }
