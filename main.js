@@ -1,24 +1,30 @@
-var index = 0,
-    identifier,
+var index,
+    label,
     register1,
-    start,
-    source = 'x := 1 + ( 2 * 3 ) + 4',
+    source,
     variables = []
 
-try {
-    statement();
-    assert( register1 + ' was the final result' )
-}
-catch ( exception ) {
-    assert( 'Error: ' + exception )
+document.getElementById( 'source' ).onkeyup = function( e ) {
+    try {
+        clear()
+        index = 0
+        source = document.getElementById( 'source' ).value
+        statement();
+        assert( register1 + ' was the final result' )
+    }
+    catch ( exception ) {
+        assert( 'Error: ' + exception )
+    }
 }
 
 // Display any messages along the way
 function assert( message ) {
-    document.getElementById( 'output' ).innerText += message + '\r\n'
-    console.log( message )
+    document.getElementById( 'output' ).innerHTML += message + '<br>'
 }
 
+function clear() {
+    document.getElementById( 'output' ).innerHTML = ''
+}
 
 // Block (under development)
 function block() {
@@ -42,33 +48,45 @@ function block() {
 
 // Statements (under development, current work)
 function statement() {
+    var start = index 
+    trivia()
+    assert( 'statement() called ' + source[ index ] )
     if ( source[   index ] === 'b' && source[ ++index ] === 'e' &&
          source[ ++index ] === 'g' && source[ ++index ] === 'i' &&
          source[ ++index ] === 'n' ) {
+        ++index
+        assert( 'begin has parsed ')
         if ( statement() ) {
+            assert( 'statement has parsed ')
             while ( source[ index ] === ';' ) {
                 ++index
+                assert( 'seperator has been parsed ')
                 if ( statement() ) {
                     //
                 }
                 else throw 'Statement expected [ BLOCK ]'
             }
         }
+        trivia()
         if ( source[   index ] === 'e' && source[ ++index ] === 'n' && 
              source[ ++index ] === 'd' ) {
+            trivia()
             return true
         }
-        else throw 'End expected [ BEGIN ]'
+        else throw 'End expected [ BEGIN ] ' + source.substr( index )
     }
     else if ( source[   index ] === 'c' && source[ ++index ] === 'a' &&
               source[ ++index ] === 'l' && source[ ++index ] === 'l' ) {
         //
     }
     else if ( source[ index ] === 'i' && source[ ++index ] === 'f' ) {
+        ++index
         if ( condition() ) {
             if ( source[   index ] === 't' && source[ ++index ] === 'h' &&
                  source[ ++index ] === 'e' && source[ ++index ] === 'n' ) {
+                ++index
                 if ( statement() ) {
+                    trivia()
                     return true
                 }
                 else throw 'Statement expected [ THEN ]'
@@ -82,15 +100,16 @@ function statement() {
               source[ ++index ] === 'e' ) {
         //
     }
-    else if ( identifier() ) {
+    index = start
+    if ( identifier() ) {
         // 
         if ( source[ index ] === ':' && source[ ++index ] === '=' ) {
             //
             ++index
             if ( expression() ) {
                 //
-                assert( identifier + ' will be assigned ' + register1 )
-                variables[ identifier ] = register1
+                assert( label + ' will be assigned ' + register1 )
+                variables[ label ] = register1
                 return true
             }
             else throw 'Expression expected [ ASSIGN ]'
@@ -100,8 +119,8 @@ function statement() {
 
 // Conditions (under development, current work)
 function condition() {
-    var register2 = register1
     trivia()
+    assert( 'condition() called ' + source[ index ] )
     if ( source[   index ] === 'o' && source[ ++index ] === 'd' &&
          source[ ++index ] === 'd' ) {
         register1 = register2 % 2 != 0
@@ -109,11 +128,12 @@ function condition() {
         return true
     }
     else if ( expression() ) {
+        var register2 = register1
         if ( source[ index ] === '=' ) {
             ++index
             if ( expression() ) {
                 assert( register2 + ' = ' + register1 + ' to be evaluated' )
-                register1 = register2 == register1
+                register1 = register2 === register1
             }
             else throw 'Unexpected token [ EQUAL ]'
         }
@@ -145,7 +165,7 @@ function condition() {
         }
         else if ( source[ index ] === '>' ) {
             ++index
-            if ( source[  index ] === '=' ) {
+            if ( source[ index ] === '=' ) {
                 ++index
                 if ( expression() ) {
                     assert( register2 + ' >= ' + register1 + ' to be evaluated' )
@@ -247,6 +267,10 @@ function factor() {
         trivia()
         return true
     }
+    else if ( identifier() ) {
+        trivia()
+        return true
+    }
 }
 
 // Parse an integer
@@ -259,7 +283,7 @@ function number() {
             ++index
         }
         register1 = parseInt( source.substr(start, index) )
-        assert( register1 + ' parsed as number' )
+        assert( register1 + ' parsed as a number' )
         trivia()
         return true
     }
@@ -268,6 +292,7 @@ function number() {
 
 // Parse an identifier (not used)
 function identifier() {
+    var start = index
     trivia()
     if ( source[ index ] >= 'A' && source[ index ] <= 'Z' ||
          source[ index ] >= 'a' && source[ index ] <= 'z' ) {
@@ -277,8 +302,9 @@ function identifier() {
                 source[ index ] >= 'a' && source[ index ] <= 'z' ) {
             ++index
         }
-        identifier = source.substr( start, index )
-        register1 = variables[ identifier ]
+        label = source.substring( start, index )
+        register1 = variables[ label ]
+        assert( label + ' was parsed as an identifier ' + start + ', ' + index  )
         trivia()
         return true
     }
@@ -289,11 +315,14 @@ function identifier() {
 
 // Skip the trivia (spaces)
 function trivia() {
-    if ( source[ index ] === ' ' ) {
+    if ( source[ index ] === ' ' || source[ index ] === '\r' ||
+         source[ index ] === '\n' ) {
         ++index
-        while ( source[ index ] === ' ' ) {
+        while ( source[ index ] === ' ' || source[ index ] === '\r' ||
+                source[ index ] === '\n' ) {
             ++index
         }
+        // assert( 'trivia() called ' + source[ index ] )
         return true
     }
     else return false
