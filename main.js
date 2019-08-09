@@ -18,11 +18,15 @@ function assert( message ) {
 }
 
 function assignment() {
-    var start = index
+    var label,
+        start = index
+    trivia()
     if ( identifier() ) {
-        var label = register1
+        label = register1
+        trivia()
         if ( source[ index ] === ':' && source[ ++index ] === '=' ) {
             ++index
+            trivia()
             if ( expression() ) {
                 assert( label + ' <- ' + register1 )
                 variables[ label ] = register1
@@ -43,16 +47,19 @@ function beginend() {
         ++index
         if ( trivia() ) {
             if ( statement() ) {
-                while ( source[ index ] === ';' ) {
-                    ++index
-                    if ( !statement() ) throw 'statement expected after ; ' + source.substr( index, 8 )
-                }
-                if ( trivia() ) {
-                    if ( source[   index ] === 'e' && source[ ++index ] === 'n' && 
-                         source[ ++index ] === 'd' ) {
+                for ( ;; ) {
+                    trivia()
+                    if ( source[ index ] === ';' ) {
                         ++index
-                        return true
+                        trivia()
+                        if ( !statement() ) throw 'statement expected after ; ' + source.substr( index, 8 )
                     }
+                    else break
+                }
+                if ( source[   index ] === 'e' && source[ ++index ] === 'n' && 
+                        source[ ++index ] === 'd' ) {
+                    ++index
+                    return true
                 }
             }
         }
@@ -65,10 +72,14 @@ function beginend() {
 // TODO: missing conditions <=, >=
 function condition() {
     // assert( 'condition()' )
+    var register2
+    trivia()
     if ( expression() ) {
-        var register2 = register1
+        trivia()
+        register2 = register1
         if ( source[ index ] === '=' ) {
             ++index
+            trivia()
             if ( expression() ) {
                 register1 = register2 === register1
                 return true
@@ -77,6 +88,7 @@ function condition() {
         }
         else if ( source[ index ] === '#' ) {
             ++index
+            trivia()
             if ( expression() ) {
                 register1 = register2 !== register1
                 return true
@@ -85,6 +97,7 @@ function condition() {
         }
         else if ( source[ index ] === '<' ) {
             ++index
+            trivia()
             if ( expression() ) {
                 register1 = register2 < register1
                 return true
@@ -93,6 +106,7 @@ function condition() {
         }
         else if ( source[ index ] === '>' ) {
             ++index
+            trivia()
             if ( expression() ) {
                 register1 = register2 > register1
                 return true
@@ -122,25 +136,31 @@ function echo() {
 
 function expression() {
     // assert( 'expression()' )
+    var register2
+    trivia()
     if ( term() ) {
-        while ( source[ index ] === '+' || source[ index ] === '-' ) {
-            var register2 = register1
+        for ( ;; ) {
             if ( source[ index ] === '+' ) {
                 ++index
+                register2 = register1
+                trivia()
                 if ( term() ) {
                     register1 = register2 + register1
-                    return true
+                    continue
                 }
                 throw 'unexpected token after + ' + source.substr( index, 8 )
             }
             else if ( source[ index ] === '-' ) {
                 ++index
+                register2 = register1
+                trivia()
                 if ( term() ) {
                     register1 = register2 - register1
-                    return true
+                    continue
                 }
                 throw 'unexpected token after -'
             }
+            else break
         }
         return true
     }
@@ -197,17 +217,15 @@ function ifthen() {
         ++index
         if ( trivia() ) {
             if ( condition() ) {
-                if ( trivia() ) {
-                    if ( source[   index ] === 't' && source[ ++index ] === 'h' &&
-                         source[ ++index ] === 'e' && source[ ++index ] === 'n' ) {
-                        ++index
-                        if ( trivia() ) {
-                            if ( statement() ) {
-                                return true
-                            }
+                if ( source[   index ] === 't' && source[ ++index ] === 'h' &&
+                        source[ ++index ] === 'e' && source[ ++index ] === 'n' ) {
+                    ++index
+                    if ( trivia() ) {
+                        if ( statement() ) {
+                            return true
                         }
-                        throw 'statement expected after then' + source.substr( index, 8 )
                     }
+                    throw 'statement expected after then' + source.substr( index, 8 )
                 }
                 throw 'then expected after condition ' + source.substr( index, 8 )
             }
@@ -252,25 +270,32 @@ function statement() {
 
 function term() {
     // assert( 'term()' )
+    var register2
+    trivia()
     if ( factor() ) {
-        while ( source[ index ] === '*' || source[ index ] === '/' ) {
-            var register2 = register1
+        for ( ;; ) {
+            trivia()
             if ( source[ index ] === '*' ) {
                 ++index
+                register2 = register1
+                trivia()
                 if ( factor() ) {
                     register1 = register2 * register1
-                    return true
+                    continue
                 }
                 throw 'unexpected token after * ' + source.substr( index, 8 )
             }
             else if ( source[ index ] === '/' ) {
                 ++index
+                register2 = register1
+                trivia()
                 if ( factor() ) {
                     register1 = register2 / register1
-                    return true
+                    continue
                 }
                 throw 'unexpected token after / ' + source.substr( index, 8 )
             }
+            else break
         }
         return true
     }
