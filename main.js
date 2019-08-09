@@ -58,10 +58,9 @@ function statement() {
         if ( statement() ) {
             while ( source[ index ] === ';' ) {
                 ++index
-                if ( statement() ) {
-                    //
+                if ( !statement() ) {
+                    throw 'Statement expected [ BLOCK ]'
                 }
-                else throw 'Statement expected [ BLOCK ]'
             }
         }
         trivia()
@@ -100,19 +99,17 @@ function statement() {
     }
     index = start
     if ( identifier() ) {
-        var ident = registerl // need to tidy this up
-        // 
+        var label = registerl
         if ( source[ index ] === ':' && source[ ++index ] === '=' ) {
-            //
             ++index
             if ( expression() ) {
                 //
                 if ( registerc ) {
-                    assert( ident + ' will be assigned ' + register1 )
-                    variables[ ident ] = register1
+                    assert( label + ' will be assigned ' + register1 )
+                    variables[ label ] = register1
                 }
                 else {
-                    assert( ident + ' will NOT be assigned ' + register1 )
+                    assert( label + ' will NOT be assigned ' + register1 )
                 }
                 return true
             }
