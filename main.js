@@ -5,10 +5,12 @@ var index,
     source,
     variables = []
 
-document.getElementById( 'source' ).onkeyup = function( e ) {
+
+function start( e ) {
     try {
         clear()
         index = 0
+        registerc = true
         source = document.getElementById( 'source' ).value
         statement();
         assert( register1 + ' was the final result' )
@@ -17,6 +19,9 @@ document.getElementById( 'source' ).onkeyup = function( e ) {
         assert( 'Error: ' + exception )
     }
 }
+
+document.getElementById( 'source' ).onkeyup = start
+start()
 
 // Display any messages along the way
 function assert( message ) {
@@ -54,18 +59,21 @@ function statement() {
     if ( source[   index ] === 'b' && source[ ++index ] === 'e' &&
          source[ ++index ] === 'g' && source[ ++index ] === 'i' &&
          source[ ++index ] === 'n' ) {
+        assert('BEGIN')
         ++index
         if ( statement() ) {
             while ( source[ index ] === ';' ) {
                 ++index
                 if ( !statement() ) {
-                    throw 'Statement expected [ BLOCK ]'
+                    throw "statement expected after ';'"
                 }
             }
         }
         trivia()
         if ( source[   index ] === 'e' && source[ ++index ] === 'n' && 
              source[ ++index ] === 'd' ) {
+            assert('END')
+            ++index
             trivia()
             return true
         }
@@ -86,16 +94,35 @@ function statement() {
                     trivia()
                     return true
                 }
-                else throw 'Statement expected [ THEN ]'
+                else throw 'statement expected after then'
             }
-            else throw 'Then expected [ IF ]'
+            else throw "'then' expected after condition"
         }
-        else throw 'Condition expected [ IF ]'
+        else throw "condition expected after 'if'"
     }
     else if ( source[   index ] === 'w' && source[ ++index ] === 'h' &&
               source[ ++index ] === 'i' && source[ ++index ] === 'l' &&
               source[ ++index ] === 'e' ) {
-        //
+        ++index
+        if ( trivia() ) {
+            start = index
+            for ( var i = 0; i < 101 && registerc; i++ ) { // Maximum of 100 iterations
+                if ( condition() ) {
+                    registerc = register1
+                    if ( source[ index] === 'd' && source[ ++index ] === 'o' ) {
+                        ++index
+                        if ( statement() ) {
+                            if ( registerc && i < 100 ) {
+                                index = start
+                            }
+                        }
+                        else throw "statement expected after 'do'"
+                    }
+                    else throw "'do' expected after 'while'"
+                }
+            }
+            return true
+        }
     }
     index = start
     if ( identifier() ) {
@@ -118,7 +145,7 @@ function statement() {
     }
 }
 
-// Conditions (under development, current work)
+// Conditions
 function condition() {
     trivia()
     if ( source[   index ] === 'o' && source[ ++index ] === 'd' &&
@@ -154,7 +181,9 @@ function condition() {
             }
             else {
                 if ( expression() ) {
+                    assert( register2 + '<' + register1 )
                     register1 = register2 < register1
+                    assert( 'result: ' + register1 )
                 }
                 else throw 'Unexpected token after <'
             }
