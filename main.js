@@ -1,6 +1,7 @@
 var index,
-    label,
     register1,
+    registerc,
+    registerl,
     source,
     variables = []
 
@@ -50,17 +51,13 @@ function block() {
 function statement() {
     var start = index 
     trivia()
-    assert( 'statement() called ' + source[ index ] )
     if ( source[   index ] === 'b' && source[ ++index ] === 'e' &&
          source[ ++index ] === 'g' && source[ ++index ] === 'i' &&
          source[ ++index ] === 'n' ) {
         ++index
-        assert( 'begin has parsed ')
         if ( statement() ) {
-            assert( 'statement has parsed ')
             while ( source[ index ] === ';' ) {
                 ++index
-                assert( 'seperator has been parsed ')
                 if ( statement() ) {
                     //
                 }
@@ -82,6 +79,7 @@ function statement() {
     else if ( source[ index ] === 'i' && source[ ++index ] === 'f' ) {
         ++index
         if ( condition() ) {
+            registerc = register1
             if ( source[   index ] === 't' && source[ ++index ] === 'h' &&
                  source[ ++index ] === 'e' && source[ ++index ] === 'n' ) {
                 ++index
@@ -102,14 +100,20 @@ function statement() {
     }
     index = start
     if ( identifier() ) {
+        var ident = registerl // need to tidy this up
         // 
         if ( source[ index ] === ':' && source[ ++index ] === '=' ) {
             //
             ++index
             if ( expression() ) {
                 //
-                assert( label + ' will be assigned ' + register1 )
-                variables[ label ] = register1
+                if ( registerc ) {
+                    assert( ident + ' will be assigned ' + register1 )
+                    variables[ ident ] = register1
+                }
+                else {
+                    assert( ident + ' will NOT be assigned ' + register1 )
+                }
                 return true
             }
             else throw 'Expression expected [ ASSIGN ]'
@@ -120,7 +124,6 @@ function statement() {
 // Conditions (under development, current work)
 function condition() {
     trivia()
-    assert( 'condition() called ' + source[ index ] )
     if ( source[   index ] === 'o' && source[ ++index ] === 'd' &&
          source[ ++index ] === 'd' ) {
         register1 = register2 % 2 != 0
@@ -132,35 +135,31 @@ function condition() {
         if ( source[ index ] === '=' ) {
             ++index
             if ( expression() ) {
-                assert( register2 + ' = ' + register1 + ' to be evaluated' )
                 register1 = register2 === register1
             }
-            else throw 'Unexpected token [ EQUAL ]'
+            else throw 'Unexpected token after ='
         }
         else if ( source[ index ] === '#' ) {
             ++index
             if ( expression() ) {
-                assert( register2 + ' # ' + register1 + ' to be evaluated' )
                 register1 = register2 != register1
             }
-            else throw 'Unexpected token [ NOT EQUAL ]'
+            else throw 'Unexpected token after #'
         }
         else if ( source[ index ] === '<' ) {
             ++index
             if ( source[  index ] === '=' ) {
                 ++index
                 if ( expression() ) {
-                    assert( register2 + ' <= ' + register1 + ' to be evaluated' )
                     register1 = register2 <= register1
                 }
-                else throw 'Unexpected token [ LESS THAN OR EQUAL ]'
+                else throw 'Unexpected token after <='
             }
             else {
                 if ( expression() ) {
-                    assert( register2 + ' < ' + register1 + ' to be evaluated' )
                     register1 = register2 < register1
                 }
-                else throw 'Unexpected token [ LESS THAN ]'
+                else throw 'Unexpected token after <'
             }
         }
         else if ( source[ index ] === '>' ) {
@@ -168,17 +167,15 @@ function condition() {
             if ( source[ index ] === '=' ) {
                 ++index
                 if ( expression() ) {
-                    assert( register2 + ' >= ' + register1 + ' to be evaluated' )
                     register1 = register2 >= register1
                 }
-                else throw 'Unexpected token [ GREATER THAN OR EQUAL ]'
+                else throw 'Unexpected token after >='
             }
             else {
                 if ( expression() ) {
-                    assert( register2 + ' > ' + register1 + ' to be evaluated' )
                     register1 = register2 > register1
                 }
-                else throw 'Unexpected token [ GREATER THAN ]'
+                else throw 'Unexpected token after >'
             }
         }
         trivia()
@@ -197,18 +194,16 @@ function expression() {
             if ( source[ index ] === '+' ) {
                 ++index
                 if ( term() ) {
-                    assert( register2 + ' + ' + register1 + ' to be evaluated' )
                     register1 = register2 + register1
                 }
-                else throw 'Unexpected token [ PLUS ]'
+                else throw 'Unexpected token after +'
             }
             else if ( source[ index ] === '-' ) {
                 ++index
                 if ( term() ) {
-                    assert( register2 + ' + ' + register1 + ' to be evaluated' )
                     register1 = register2 - register1
                 }
-                else throw 'Unexpected token [ MINUS ]'
+                else throw 'Unexpected token after -'
             }
         }
         trivia()
@@ -227,18 +222,16 @@ function term() {
             if ( source[ index ] === '*' ) {
                 ++index
                 if ( factor() ) {
-                    assert( register2 + ' * ' + register1 + ' to be evaluated' )
                     register1 = register2 * register1
                 }
-                else throw 'Unexpected token [ MULTIPLY ]'
+                else throw 'Unexpected token after *'
             }
             else if ( source[ index ] === '/' ) {
                 ++index
                 if ( factor() ) {
-                    assert( register2 + ' / ' + register1 + ' to be evaluated' )
                     register1 = register2 / register1
                 }
-                else throw 'Unexpected token [ DIVIDE ]'
+                else throw 'Unexpected token after /'
             }
         }
         trivia()
@@ -283,7 +276,6 @@ function number() {
             ++index
         }
         register1 = parseInt( source.substr(start, index) )
-        assert( register1 + ' parsed as a number' )
         trivia()
         return true
     }
@@ -302,9 +294,9 @@ function identifier() {
                 source[ index ] >= 'a' && source[ index ] <= 'z' ) {
             ++index
         }
-        label = source.substring( start, index )
-        register1 = variables[ label ]
-        assert( label + ' was parsed as an identifier ' + start + ', ' + index  )
+        registerl = source.substring( start, index )
+        register1 = variables[ registerl ]
+        assert( registerl + ' was parsed as an identifier ' + start + ', ' + index  )
         trivia()
         return true
     }
@@ -322,7 +314,6 @@ function trivia() {
                 source[ index ] === '\n' ) {
             ++index
         }
-        // assert( 'trivia() called ' + source[ index ] )
         return true
     }
     else return false
