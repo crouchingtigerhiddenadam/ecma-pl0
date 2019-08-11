@@ -41,8 +41,9 @@ function program() {
         ++index
         trivia()
         if ( source[ index ] === undefined ) return
+        throw 'contents after end of program'
     }
-    throw 'end of program expected'
+    throw 'end of expression ; or end of program . expected'
 }
 
 function procedure() {
