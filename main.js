@@ -152,8 +152,9 @@ function proccall( evaluate ) {
 
 function echo( evaluate ) {
     var reset = _index, result
-    if ( _source[   _index ] === 'e' && _source[ ++_index ] === 'c' &&
-         _source[ ++_index ] === 'h' && _source[ ++_index ] === 'o' ) {
+    if ( _source[   _index ] === '!' || _source[   _index ] === 'e' &&
+         _source[ ++_index ] === 'c' && _source[ ++_index ] === 'h' &&
+         _source[ ++_index ] === 'o' ) {
         ++_index
         if ( trivia() ) {
             result = expression( evaluate )

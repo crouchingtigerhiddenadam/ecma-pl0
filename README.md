@@ -2,8 +2,8 @@
 JavaScript implementation of PL/0. Based on the PL/0 programming language from Algorithms + Data Structures = Programs by Niklaus Wirth.
 
 ## Notes
-`const` and `var` are currently not implemented.  
-`echo` replaces the original `!` statement.
+The `const` and `var` statements are currently not implemented or required.
+The `echo` statement replaces the original `!` statement, though `!` can still be used.
 
 ## Example program
 ```
