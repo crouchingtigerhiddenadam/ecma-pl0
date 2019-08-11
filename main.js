@@ -1,9 +1,9 @@
 const MAX_ITERATIONS = 100
 
-var _heap = [],
-    _index,
+var _index,
     _source,
-    _start
+    _start,
+    _vars = [],
 
 function run() {
     _source = document.getElementById( 'source' ).value
@@ -64,7 +64,7 @@ function procedure() {
         ++_index
         if ( trivia() ) {
             if ( identifier() ) {
-                _heap[ _source.substring( _start, _index ) ] = _index
+                _vars[ _source.substring( _start, _index ) ] = _index
                 trivia()
                 beginend( false )
                 return true
@@ -95,7 +95,7 @@ function assignment( evaluate ) {
             ++_index
             trivia()
             result = expression( evaluate )
-            if ( evaluate ) _heap[ label ] = result
+            if ( evaluate ) _vars[ label ] = result
             return true
         }
     }
@@ -139,7 +139,7 @@ function proccall( evaluate ) {
         if ( trivia() ) {
             if ( identifier() ) {
                 tail  = _index
-                _index = _heap[ _source.substring( _start, _index ) ]
+                _index = _vars[ _source.substring( _start, _index ) ]
                 statement( evaluate )
                 _index = tail
                 return true
@@ -323,7 +323,7 @@ function factor( evaluate ) {
         return parseFloat( _source.substring( _start, _index ) )
     }
     else if ( identifier() ) {
-        return _heap[ _source.substring( _start, _index ) ] 
+        return _vars[ _source.substring( _start, _index ) ] 
     }
     throw 'unexpected token [factor]'
 }
