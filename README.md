@@ -3,12 +3,18 @@ JavaScript implementation of PL/0. Based on the PL/0 programming language from A
 
 ## Example program
 ```
-x := 1;  
-if x = 1 then  
-begin  
-  i := 1 + 2 * 3 + 4;  
-  echo i + 4  
-end.  
+x := 1;
+procedure pr
+begin
+    echo 42 + 21 + x
+end;
+if x = 1 then
+begin
+    i := 1 + 2 * 3 + 4;
+    echo i+4;
+    call pr
+end
+. 
 ```
 
 | Token  | Description          |
@@ -24,14 +30,14 @@ end.
 block "." .`
 ```
   
-#### block (not implemented)
+#### block (const and var to be implemented)
 ```
 ["const" ident "=" num {"," ident "=" num} ";"]  
 ["var" ident {"," ident} ";"]  
 {"procedure" ident ";" block ";"} statement .  
 ```
   
-#### statement (call and while/do to be implemented)
+#### statement (while/do to be implemented)
 ```
 ident ":=" expression  
 | "call" ident  

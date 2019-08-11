@@ -27,16 +27,7 @@ function clear() {
 }
 
 function program() {
-    trivia()
-    statement( true )
-    for ( ;; ) {
-        trivia()
-        if ( source[ index ] === ';' ) {
-            ++index
-            statement( true )
-        }
-        else break
-    }
+    block()
     if ( source[ index ] === '.' ) {
         ++index
         trivia()
@@ -46,9 +37,24 @@ function program() {
     throw 'end of expression ; or end of program . expected'
 }
 
+function block() {
+    trivia()
+    for ( ;; ) {
+        trivia()
+        if      ( procedure() )        {}
+        else if ( statement( true ) )  {}
+        trivia()
+        if ( source[ index ] === ';' ) {
+            ++index
+            continue
+        }
+        else break
+    }
+}
+
 function procedure() {
     // assert( 'procedure()' )
-    var start = index
+    var reset = index
     if ( source[   index ] === 'p' && source[ ++index ] === 'r' &&
          source[ ++index ] === 'o' && source[ ++index ] === 'c' &&
          source[ ++index ] === 'e' && source[ ++index ] === 'd' &&
@@ -56,13 +62,15 @@ function procedure() {
          source[ ++index ] === 'e' ) {
         ++index
         if ( trivia() ) {
-            if ( identity() ) {
+            if ( identifier() ) {
                 heap[ source.substring( start, index ) ] = index
+                trivia()
+                beginend( false )
                 return true
             }
         }
     }
-    index = start
+    index = reset
     return false
 }
 
@@ -73,7 +81,8 @@ function statement( evaluate ) {
     else if ( beginend( evaluate ) )    return
     else if ( echo( evaluate ) )        return
     else if ( ifthen( evaluate ) )      return
-    throw 'Unexpected token'
+    else if ( proccall( evaluate) )     return
+    throw 'unexpected token [statement]'
 }
 
 function assignment( evaluate ) {
@@ -118,6 +127,25 @@ function beginend( evaluate ) {
             }
         }
         throw 'end or ; expected'
+    }
+    index = reset
+    return false
+}
+
+function proccall( evaluate ) {
+    var reset = index, tail
+    if ( source[   index ] === 'c' && source[ ++index ] === 'a' &&
+         source[ ++index ] === 'l' && source[ ++index ] === 'l' ) {
+        ++index
+        if ( trivia() ) {
+            if ( identifier() ) {
+                tail  = index
+                index = heap[ source.substring( start, index ) ]
+                statement( evaluate )
+                index = tail
+                return true
+            }
+        }
     }
     index = reset
     return false
