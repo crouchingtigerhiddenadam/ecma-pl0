@@ -11,14 +11,15 @@ JavaScript implementation of PL/0. Based on the PL/0 programming language from A
 > ["var" ident {"," ident} ";"]  
 > {"procedure" ident ";" block ";"} statement .  
   
-#### statement (not implemented, current work schedule)
+#### statement (call and while/do to be implemented)
 > ident ":=" expression  
 > | "call" ident  
 > | "begin" statement {";" statement } "end"  
+  | "echo" expression
 > | "if" condition "then" statement  
 > | "while" condition "do" statement .  
   
-#### condition (not implemented, current work schedule)
+#### condition (<= and >= to be implemented)
 > "odd" expression  
 > | expression ("="|"#"|"<"|"<="|">"|">=") expression .  
   
