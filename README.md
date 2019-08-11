@@ -1,6 +1,15 @@
 # ECMA PL/0
 JavaScript implementation of PL/0. Based on the PL/0 programming language from Algorithms + Data Structures = Programs by Niklaus Wirth.
 
+## Example program
+
+> x := 1;
+> if x = 1 then
+> begin
+>   i := 1 + 2 * 3 + 4;
+>   echo i + 4
+> end.
+
 ## EBNF-like Grammar
  
 #### program (not implemented)
@@ -15,7 +24,7 @@ JavaScript implementation of PL/0. Based on the PL/0 programming language from A
 > ident ":=" expression  
 > | "call" ident  
 > | "begin" statement {";" statement } "end"  
-  | "echo" expression
+> | "echo" expression
 > | "if" condition "then" statement  
 > | "while" condition "do" statement .  
   
