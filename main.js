@@ -27,29 +27,22 @@ function clear() {
 }
 
 function program() {
-    if ( source[   index ] === 'b' && source[ ++index ] === 'e' &&
-         source[ ++index ] === 'g' && source[ ++index ] === 'i' &&
-         source[ ++index ] === 'n' ) {
-        ++index
-        if ( trivia() ) {
+    trivia()
+    statement( true )
+    for ( ;; ) {
+        trivia()
+        if ( source[ index ] === ';' ) {
+            ++index
             statement( true )
-            for ( ;; ) {
-                trivia()
-                if ( source[ index ] === ';' ) {
-                    ++index
-                    statement( true )
-                }
-                else break
-            }
-            if ( source[   index ] === 'e' && source[ ++index ] === 'n' && 
-                 source[ ++index ] === 'd' ) {
-                ++index
-                return
-            }
         }
-        throw 'end of program expected'
+        else break
     }
-    throw 'begin of program expected'
+    if ( source[ index ] === '.' ) {
+        ++index
+        trivia()
+        if ( source[ index ] === undefined ) return
+    }
+    throw 'end of program expected'
 }
 
 function procedure() {
@@ -79,7 +72,7 @@ function statement( evaluate ) {
     else if ( beginend( evaluate ) )    return
     else if ( echo( evaluate ) )        return
     else if ( ifthen( evaluate ) )      return
-    expression( evaluate )
+    throw 'Unexpected token'
 }
 
 function assignment( evaluate ) {
