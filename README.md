@@ -2,6 +2,7 @@
 JavaScript implementation of PL/0. Based on the PL/0 programming language from Algorithms + Data Structures = Programs by Niklaus Wirth.
 
 ## Notes
+The `odd` condition is currently not implemented, but will be in the next push.
 The `const` and `var` statements are currently not implemented or required.
 The `echo` statement replaces the original `!` statement, though `!` can still be used.
 
@@ -22,10 +23,17 @@ end
 ```
 
 | Token  | Description          |
-| ------ | -------------------: |
+| :----: | -------------------: |
 | :=     | Assignment           |
+| !      | Echo                 |
+| =      | Equals               |
+| #      | Not Equal            |
 | ;      | Seperate Expressions |
 | .      | End Of Program       |
+| +      | Plus                 |
+| -      | Minus                |
+| *      | Multiply             |
+| /      | Divide               |
 
 ## EBNF-like Grammar
  
@@ -36,15 +44,15 @@ block "." .`
   
 #### block (const and var to be implemented)
 ```
-["const" ident "=" num {"," ident "=" num} ";"]  
-["var" ident {"," ident} ";"]  
-{"procedure" ident ";" block ";"} statement .  
+["const" identifier "=" number {"," ident "=" number} ";"]  
+["var" identifier {"," identifier} ";"]  
+{"procedure" identifier ";" block ";"} statement .  
 ```
   
 #### statement
 ```
-ident ":=" expression  
-| "call" ident  
+identifier ":=" expression  
+| "call" identifier  
 | "begin" statement {";" statement } "end"  
 | "echo" expression
 | "if" condition "then" statement  
@@ -69,7 +77,7 @@ factor {("*"|"/") factor} .
   
 #### factor
 ```
-ident  
+identifier  
 | number  
 | "(" expression ")" .  
 ```
