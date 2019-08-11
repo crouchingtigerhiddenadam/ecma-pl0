@@ -1,6 +1,10 @@
 # ECMA PL/0
 JavaScript implementation of PL/0. Based on the PL/0 programming language from Algorithms + Data Structures = Programs by Niklaus Wirth.
 
+## Notes
+`const` and `var` are currently not implemented.  
+`echo` replaces the original `!` statement.
+
 ## Example program
 ```
 x := 1;
@@ -25,7 +29,7 @@ end
 
 ## EBNF-like Grammar
  
-#### program (not implemented)
+#### program 
 ```
 block "." .`
 ```
@@ -37,7 +41,7 @@ block "." .`
 {"procedure" ident ";" block ";"} statement .  
 ```
   
-#### statement (while/do to be implemented)
+#### statement
 ```
 ident ":=" expression  
 | "call" ident  
@@ -47,7 +51,7 @@ ident ":=" expression
 | "while" condition "do" statement .  
 ```
 
-#### condition (<= and >= to be implemented)
+#### condition
 ```
 "odd" expression  
 | expression ("="|"#"|"<"|"<="|">"|">=") expression .  

@@ -1,11 +1,13 @@
-var heap = [],
-    index,
-    source,
-    start
+const MAX_ITERATIONS = 100
+
+var _heap = [],
+    _index,
+    _source,
+    _start
 
 function run() {
-    source = document.getElementById( 'source' ).value
-    index = 0
+    _source = document.getElementById( 'source' ).value
+    _index = 0
     clear()
     try {
         program()
@@ -28,24 +30,24 @@ function clear() {
 
 function program() {
     block()
-    if ( source[ index ] === '.' ) {
-        ++index
+    if ( _source[ _index ] === '.' ) {
+        ++_index
         trivia()
-        if ( source[ index ] === undefined ) return
+        if ( _source[ _index ] === undefined ) return
         throw 'contents after end of program'
     }
-    throw 'end of expression ; or end of program . expected'
+    throw 'end of expression ; or end of program . expected' + _source.substr( _index, 16 )
 }
 
 function block() {
     trivia()
     for ( ;; ) {
         trivia()
-        if      ( procedure() )        {}
-        else if ( statement( true ) )  {}
+        if      ( procedure() )        { }
+        else if ( statement( true ) )  { }
         trivia()
-        if ( source[ index ] === ';' ) {
-            ++index
+        if ( _source[ _index ] === ';' ) {
+            ++_index
             continue
         }
         else break
@@ -53,110 +55,106 @@ function block() {
 }
 
 function procedure() {
-    // assert( 'procedure()' )
-    var reset = index
-    if ( source[   index ] === 'p' && source[ ++index ] === 'r' &&
-         source[ ++index ] === 'o' && source[ ++index ] === 'c' &&
-         source[ ++index ] === 'e' && source[ ++index ] === 'd' &&
-         source[ ++index ] === 'u' && source[ ++index ] === 'r' &&
-         source[ ++index ] === 'e' ) {
-        ++index
+    var reset = _index
+    if ( _source[   _index ] === 'p' && _source[ ++_index ] === 'r' &&
+         _source[ ++_index ] === 'o' && _source[ ++_index ] === 'c' &&
+         _source[ ++_index ] === 'e' && _source[ ++_index ] === 'd' &&
+         _source[ ++_index ] === 'u' && _source[ ++_index ] === 'r' &&
+         _source[ ++_index ] === 'e' ) {
+        ++_index
         if ( trivia() ) {
             if ( identifier() ) {
-                heap[ source.substring( start, index ) ] = index
+                _heap[ _source.substring( _start, _index ) ] = _index
                 trivia()
                 beginend( false )
                 return true
             }
         }
     }
-    index = reset
+    _index = reset
     return false
 }
 
 function statement( evaluate ) {
-    // assert( 'statement( ' + evaluate + ' )' )
     trivia()
-    if      ( assignment( evaluate ) )  return
-    else if ( beginend( evaluate ) )    return
-    else if ( echo( evaluate ) )        return
-    else if ( ifthen( evaluate ) )      return
-    else if ( proccall( evaluate) )     return
-    throw 'unexpected token [statement]'
+    if      ( assignment ( evaluate ) ) return
+    else if ( beginend   ( evaluate ) ) return
+    else if ( echo       ( evaluate ) ) return
+    else if ( ifthen     ( evaluate ) ) return
+    else if ( proccall   ( evaluate ) ) return
+    else if ( whiledo    ( evaluate ) ) return
+    throw 'unexpected token [statement] ' + _source.substr( _index, 16 )
 }
 
 function assignment( evaluate ) {
-    // assert( 'assignment( ' + evaluate + ' )' )
-    var label, reset = index, result
+    var label, reset = _index, result
     if ( identifier( evaluate ) ) {
-        label = source.substring( start, index )
+        label = _source.substring( _start, _index )
         trivia()
-        if ( source[ index ] === ':' && source[ ++index ] === '=' ) {
-            ++index
+        if ( _source[ _index ] === ':' && _source[ ++_index ] === '=' ) {
+            ++_index
             trivia()
             result = expression( evaluate )
-            if ( evaluate ) heap[ label ] = result
+            if ( evaluate ) _heap[ label ] = result
             return true
         }
     }
-    index = reset
+    _index = reset
     return false
 }
 
 function beginend( evaluate ) {
-    // assert( 'beginend( ' + evaluate + ' )' )
-    var reset = index
-    if ( source[   index ] === 'b' && source[ ++index ] === 'e' &&
-         source[ ++index ] === 'g' && source[ ++index ] === 'i' &&
-         source[ ++index ] === 'n' ) {
-        ++index
+    var reset = _index
+    if ( _source[   _index ] === 'b' && _source[ ++_index ] === 'e' &&
+         _source[ ++_index ] === 'g' && _source[ ++_index ] === 'i' &&
+         _source[ ++_index ] === 'n' ) {
+        ++_index
         if ( trivia() ) {
             statement( evaluate )
             for ( ;; ) {
                 trivia()
-                if ( source[ index ] === ';' ) {
-                    ++index
+                if ( _source[ _index ] === ';' ) {
+                    ++_index
                     statement( evaluate )
                 }
                 else break
             }
-            if ( source[   index ] === 'e' && source[ ++index ] === 'n' && 
-                 source[ ++index ] === 'd' ) {
-                ++index
+            if ( _source[   _index ] === 'e' && _source[ ++_index ] === 'n' && 
+                 _source[ ++_index ] === 'd' ) {
+                ++_index
                 return true
             }
         }
         throw 'end or ; expected'
     }
-    index = reset
+    _index = reset
     return false
 }
 
 function proccall( evaluate ) {
-    var reset = index, tail
-    if ( source[   index ] === 'c' && source[ ++index ] === 'a' &&
-         source[ ++index ] === 'l' && source[ ++index ] === 'l' ) {
-        ++index
+    var reset = _index, tail
+    if ( _source[   _index ] === 'c' && _source[ ++_index ] === 'a' &&
+         _source[ ++_index ] === 'l' && _source[ ++_index ] === 'l' ) {
+        ++_index
         if ( trivia() ) {
             if ( identifier() ) {
-                tail  = index
-                index = heap[ source.substring( start, index ) ]
+                tail  = _index
+                _index = _heap[ _source.substring( _start, _index ) ]
                 statement( evaluate )
-                index = tail
+                _index = tail
                 return true
             }
         }
     }
-    index = reset
+    _index = reset
     return false
 }
 
 function echo( evaluate ) {
-    // assert( 'echo( ' + evaluate + ' )' )
-    var reset = index, result
-    if ( source[   index ] === 'e' && source[ ++index ] === 'c' &&
-         source[ ++index ] === 'h' && source[ ++index ] === 'o' ) {
-        ++index
+    var reset = _index, result
+    if ( _source[   _index ] === 'e' && _source[ ++_index ] === 'c' &&
+         _source[ ++_index ] === 'h' && _source[ ++_index ] === 'o' ) {
+        ++_index
         if ( trivia() ) {
             result = expression( evaluate )
             if ( evaluate ) assert( result )
@@ -164,20 +162,19 @@ function echo( evaluate ) {
         }
         throw 'expression expected after echo'
     }
-    index = reset
+    _index = reset
     return false
 }
 
 function ifthen( evaluate ) {
-    // assert( 'ifthen( ' + evaluate + ' )' )
-    var reset = index, result
-    if ( source[ index ] === 'i' && source[ ++index ] === 'f' ) {
-        ++index
+    var reset = _index, result
+    if ( _source[ _index ] === 'i' && _source[ ++_index ] === 'f' ) {
+        ++_index
         if ( trivia() ) {
             result = condition( evaluate )
-            if ( source[   index ] === 't' && source[ ++index ] === 'h' &&
-                 source[ ++index ] === 'e' && source[ ++index ] === 'n' ) {
-                ++index
+            if ( _source[   _index ] === 't' && _source[ ++_index ] === 'h' &&
+                 _source[ ++_index ] === 'e' && _source[ ++_index ] === 'n' ) {
+                ++_index
                 if ( trivia() ) {
                     statement( result )
                     return true
@@ -187,78 +184,92 @@ function ifthen( evaluate ) {
             throw 'then expected after condition'
         }
     }
-    index = reset
+    _index = reset
     return false
 }
 
 function whiledo( evaluate ) {
-    // assert( 'whiledo(' + evaluate + ')' )
-    var reset = index
-    if ( source[   index ] === 'w' && source[ ++index ] === 'h' &&
-         source[ ++index ] === 'i' && source[ ++index ] === 'l' &&
-         source[ ++index ] === 'e' ) {
-        ++index
+    var reset = _index, iter = 0, result, head
+    if ( _source[   _index ] === 'w' && _source[ ++_index ] === 'h' &&
+         _source[ ++_index ] === 'i' && _source[ ++_index ] === 'l' &&
+         _source[ ++_index ] === 'e' ) {
+        ++_index
         if ( trivia() ) {
-            start = index // <-- reset pointer
-            if ( condition( evaluate ) ) {
-                if ( trivia() ) {
-                    if ( source[ index ] === 'd' && source[ ++index ] === 'o' ) {
-                        ++index
-                        if ( trivia() ) {
-                            return true
+            head   = _index
+            for ( ;; ) {
+                result = condition( evaluate )
+                if ( _source[   _index ] === 'd' && _source[ ++_index ] === 'o' ) {
+                    ++_index
+                    if ( trivia() ) {
+                        statement( result )
+                        if ( result && iter < MAX_ITERATIONS ) {
+                            _index = head
+                            ++iter
+                            continue
                         }
+                        else return true
                     }
+                    throw 'statement expected after do'
                 }
-                throw 'do expected'
+                throw 'do expected after condition'
             }
-            throw 'condition expected'
+            return true
         }
     }
-    index = reset
+    _index = reset
     return false
 }
 
-// TODO: missing conditions <=, >=
 function condition( evaluate ) {
-    // assert( 'condition( ' + evaluate + ' )' )
     var result, operand
     result = expression( evaluate )
-    if ( source[ index ] === '=' ) {
-        ++index
+    if ( _source[ _index ] === '=' ) {
+        ++_index
         operand = expression( evaluate )
         if ( evaluate ) return result === operand
     }
-    else if ( source[ index ] === '#' ) {
-        ++index
+    else if ( _source[ _index ] === '#' ) {
+        ++_index
         operand = expression( evaluate )
         if ( evaluate ) return result === operand
     }
-    else if ( source[ index ] === '<' ) {
-        ++index
-        operand = expression( evaluate )
-        if ( evalulate ) return result < operand
+    else if ( _source[ _index ] === '<' ) {
+        ++_index
+        if ( _source[ _index ] === '=' ) {
+            operand = expression( evaluate )
+            if ( evaluate ) return result <= operand
+        }
+        else {
+            operand = expression( evaluate )
+            if ( evaluate ) return result < operand
+        }
     }
-    else if ( source[ index ] === '>' ) {
-        ++index
-        operand = expression( evaluate )
-        if ( evalulate ) return result > operand
+    else if ( _source[ _index ] === '>' ) {
+        ++_index
+        if ( _source[ _index ] === '=' ) {
+            operand = expression( evaluate )
+            if ( evaluate ) return result >= operand
+        }
+        else {
+            operand = expression( evaluate )
+            if ( evaluate ) return result > operand
+        }
     }
-    throw 'unexpected token'
+    throw 'unexpected token [condition]'
 }
 
 function expression( evaluate ) {
-    // assert( 'expression( ' + evaluate + ' )' )
     var result, operand
     result = term( evaluate )
     for ( ;; ) {
-        if ( source[ index ] === '+' ) {
-            ++index
+        if ( _source[ _index ] === '+' ) {
+            ++_index
             operand = term( evaluate )
             if ( evaluate ) result += operand
             continue
         }
-        else if ( source[ index ] === '-' ) {
-            ++index
+        else if ( _source[ _index ] === '-' ) {
+            ++_index
             operand = term( evaluate )
             if ( evaluate ) result -= operand
             continue
@@ -269,20 +280,19 @@ function expression( evaluate ) {
 }
 
 function term( evaluate ) {
-    // assert( 'term( ' + evaluate + ' )' )
     var result, operand
     result = factor( evaluate )
     for ( ;; ) {
         trivia()
-        if ( source[ index ] === '*' ) {
-            ++index
+        if ( _source[ _index ] === '*' ) {
+            ++_index
             trivia()
             operand = factor( evaluate )
             if ( evaluate ) result *= operand
             continue
         }
-        else if ( source[ index ] === '/' ) {
-            ++index
+        else if ( _source[ _index ] === '/' ) {
+            ++_index
             trivia()
             operand = factor( evaluate )
             if ( evaluate ) result /= operand
@@ -294,68 +304,63 @@ function term( evaluate ) {
 }
 
 function factor( evaluate ) {
-    // assert( 'factor(' + evaluate + ')' )
     var result
     trivia()
-    if ( source[ index ] === '(' ) {
-        ++index
+    if ( _source[ _index ] === '(' ) {
+        ++_index
         if ( result = expression( evaluate ) ) {
             trivia()
-            if ( source[ index ] === ')' ) {
-                ++index
+            if ( _source[ _index ] === ')' ) {
+                ++_index
                 return result
             }
             throw ') expected'
         }
-        throw 'unexpected token'
+        throw 'unexpected token [paranthesis]'
     }
     else if ( number() ) {
-        return parseFloat( source.substring( start, index ) )
+        return parseFloat( _source.substring( _start, _index ) )
     }
     else if ( identifier() ) {
-        return heap[ source.substring( start, index ) ] 
+        return _heap[ _source.substring( _start, _index ) ] 
     }
-    throw 'unexpected token'
+    throw 'unexpected token [factor]'
 }
 
 function number() {
-    // assert( 'number()' )
-    start = index
-    while ( source[ index ] >= '0' && source[ index ] <= '9' ) ++index
-    if ( source[ index ] === '.' ) {
-        ++index
-        if ( source[ index ] >= '0' && source[ index ] <= '9' ) {
-            ++index
-            while ( source[ index ] >= '0' && source[ index ] <= '9' ) ++index
+    _start = _index
+    while ( _source[ _index ] >= '0' && _source[ _index ] <= '9' ) ++_index
+    if ( _source[ _index ] === '.' ) {
+        ++_index
+        if ( _source[ _index ] >= '0' && _source[ _index ] <= '9' ) {
+            ++_index
+            while ( _source[ _index ] >= '0' && _source[ _index ] <= '9' ) ++_index
         }
         else throw 'digits expected after decimal point'
     }
-    return start < index
+    return _start < _index
 }
 
 function identifier() {
-    // assert( 'identifier()' )
-    start = index
-    if ( source[ index ] >= 'A' && source[ index ] <= 'Z' ||
-         source[ index ] >= 'a' && source[ index ] <= 'z' ) {
-        start = index
-        ++index
-        while ( source[ index ] >= 'A' && source[ index ] <= 'Z' ||
-                source[ index ] >= 'a' && source[ index ] <= 'z' ) ++index
-        // assert( 'identifier: ' + source.substring( start, index ) )
+    _start = _index
+    if ( _source[ _index ] >= 'A' && _source[ _index ] <= 'Z' ||
+         _source[ _index ] >= 'a' && _source[ _index ] <= 'z' ) {
+        _start = _index
+        ++_index
+        while ( _source[ _index ] >= 'A' && _source[ _index ] <= 'Z' ||
+                _source[ _index ] >= 'a' && _source[ _index ] <= 'z' ) ++_index
         return true
     }
-    index = start
+    _index = _start
     return false
 }
 
 function trivia() {
-    // assert( 'trivia()' )
-    if ( source[ index ] === ' '  || source === '\t' ||
-         source[ index ] === '\r' || source[ index ] === '\n') {
-        ++index
-        while ( source[ index ] === ' '  || source[ index ] === '\t' ||
-                source[ index ] === '\r' || source[ index ] === '\n') ++index
+    if ( _source[ _index ] === ' '  || _source === '\t' ||
+         _source[ _index ] === '\r' || _source[ _index ] === '\n') {
+        ++_index
+        while ( _source[ _index ] === ' '  || _source[ _index ] === '\t' ||
+                _source[ _index ] === '\r' || _source[ _index ] === '\n') ++_index
         return true
     }
     return false
