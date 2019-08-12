@@ -31,6 +31,7 @@ end.
 | =      | Equals or Assign Constant |
 | ;      | Seperate Expressions      |
 | .      | End Of Program            |
+| odd    | x % 2 != 0                |
 | +      | Plus                      |
 | -      | Minus                     |
 | *      | Multiply                  |
