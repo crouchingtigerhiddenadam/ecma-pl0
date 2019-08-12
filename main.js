@@ -3,6 +3,8 @@ const MAX_ITERATIONS = 100
 var _index,
     _source,
     _start,
+    _constants = [],
+    _functions = [],
     _variables = []
 
 function run() {
@@ -12,8 +14,8 @@ function run() {
     try {
         program()
     }
-    catch ( exp ) {
-        assert( exp )
+    catch ( exception ) {
+        assert( exception )
     }
 }
 
@@ -64,7 +66,7 @@ function procedure() {
         ++_index
         if ( trivia() ) {
             if ( identifier() ) {
-                _variables[ _source.substring( _start, _index ) ] = _index
+                _functions[ _source.substring( _start, _index ) ] = _index
                 trivia()
                 beginend( false )
                 return true
@@ -139,7 +141,7 @@ function proccall( evaluate ) {
         if ( trivia() ) {
             if ( identifier() ) {
                 tail  = _index
-                _index = _variables[ _source.substring( _start, _index ) ]
+                _index = _functions[ _source.substring( _start, _index ) ]
                 statement( evaluate )
                 _index = tail
                 return true
