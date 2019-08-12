@@ -1,24 +1,29 @@
 # ECMA PL/0
 JavaScript implementation of PL/0. Based on the PL/0 programming language from Algorithms + Data Structures = Programs by Niklaus Wirth.
 
-## Notes
-The `const` and `var` statements are currently not implemented or required.
-The `echo` statement replaces the original `!` statement, though `!` can still be used.
+## Roadmap
+Functionally complete with error messages, documentation and testing underway.  
 
 ## Example program
 ```
-x := 1;
-procedure pr
+const z = 1;
+var x, y;
+x := z + 2;
+procedure sub1
 begin
-    echo 42 + 21 + x
+    ! z + x
 end;
 if odd x then
 begin
-    i := 1 + 2 * 3 + 4;
-    echo i+4;
-    call pr
-end
-. 
+    ! 1 + 2 * 3 + 4;
+    call sub1
+end;
+y := -10;
+while y # 10 do
+begin
+    y := y + 2;
+    ! y
+end.
 ```
 
 | Token  | Description          |

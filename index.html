@@ -5,22 +5,23 @@
 </head>
 <body style="margin: 0; padding: 0; width: 100%; height: 100%">
     <textarea id="source" style="width: 100%; height: 50%">
-var x, i;
-x := 1;
+const z = 1;
+var x, y;
+x := z + 2;
 procedure sub1
 begin
-    !42 + 21 + x
+    ! z + x
 end;
 if odd x then
 begin
-    i := 1 + 2 * 3 + 4;
-    !i + 4;
+    ! 1 + 2 * 3 + 4;
     call sub1
 end;
-while x # 10 do
+y := -10;
+while y # 10 do
 begin
-    x := x + 1;
-    !x
+    y := y + 2;
+    ! y
 end.
     </textarea>
     <div style="height: 50%">

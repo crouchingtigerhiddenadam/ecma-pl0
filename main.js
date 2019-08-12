@@ -3,9 +3,9 @@ const MAX_ITERATIONS = 100
 var _index,
     _source,
     _start,
-    _constants = [],
-    _functions = [],
-    _variables = []
+    _constants  = [],
+    _procedures = [],
+    _variables  = []
 
 function run() {
     _source = document.getElementById( 'source' ).value
@@ -45,7 +45,8 @@ function block() {
     trivia()
     for ( ;; ) {
         trivia()
-        if      ( declaration() )      { }
+        if      ( constants() )        { }
+        else if ( variables() )        { }
         else if ( procedure() )        { }
         else if ( statement( true ) )  { }
         trivia()
@@ -57,21 +58,63 @@ function block() {
     }
 }
 
-function declaration() {
-    var reset = _index
+function constants() {
+    var label, reset = _index
+    if ( _source[   _index ] === 'c' && _source[ ++_index ] === 'o' &&
+         _source[ ++_index ] === 'n' && _source[ ++_index ] === 's' &&
+         _source[ ++_index ] === 't' ) {
+        ++_index
+        if ( trivia() ) {
+            for ( ;; ) {
+                if ( identifier() ) {
+                    label = _source.substring( _start, _index )
+                    if ( _variables[ label ] !== undefined ) throw 'const and var have the same label'
+                    trivia()
+                    if ( _source[ _index ] === '=' ) {
+                        ++_index
+                        trivia()
+                        if ( number() ) {
+                            _constants[ label ] = parseFloat( _source.substring( _start, _index ) )
+                            trivia()
+                            if ( _source[ _index ] === ',' ) {
+                                ++_index
+                                trivia()
+                                continue
+                            }
+                            else return true
+                        }
+                        else throw 'syntax'
+                    }
+                    else throw 'syntax error'
+                }
+                else throw 'syntax error'
+            }
+        }
+    }
+    _index = reset
+    return false
+}
+
+function variables() {
+    var label, reset = _index
     if ( _source[   _index ] === 'v' && _source[ ++_index ] === 'a' &&
          _source[ ++_index ] === 'r' ) {
         ++_index
         if ( trivia() ) {
             for ( ;; ) {
-                if ( identifier() ) _variables[ _source.substring( _start, _index ) ] = null
-                trivia()
-                if ( _source[ _index ] === ',' ) {
-                    ++_index
+                if ( identifier() ) {
+                    label = _source.substring( _start, _index )
+                    if ( _constants[ label ] !== undefined ) throw 'var and const have the same label'
+                    _variables[ label ] = null
                     trivia()
-                    continue
+                    if ( _source[ _index ] === ',' ) {
+                        ++_index
+                        trivia()
+                        continue
+                    }
+                    else return true
                 }
-                else return true
+                else throw 'syntax error'
             }
         }
     }
@@ -89,7 +132,7 @@ function procedure() {
         ++_index
         if ( trivia() ) {
             if ( identifier() ) {
-                _functions[ _source.substring( _start, _index ) ] = _index
+                _procedures[ _source.substring( _start, _index ) ] = _index
                 trivia()
                 beginend( false )
                 return true
@@ -167,7 +210,7 @@ function call( evaluate ) {
         if ( trivia() ) {
             if ( identifier() ) {
                 tail  = _index
-                _index = _functions[ _source.substring( _start, _index ) ]
+                _index = _procedures[ _source.substring( _start, _index ) ]
                 statement( evaluate )
                 _index = tail
                 return true
@@ -345,7 +388,7 @@ function term( evaluate ) {
 }
 
 function factor( evaluate ) {
-    var result
+    var label, result
     trivia()
     if ( _source[ _index ] === '(' ) {
         ++_index
@@ -363,13 +406,15 @@ function factor( evaluate ) {
         return parseFloat( _source.substring( _start, _index ) )
     }
     else if ( identifier() ) {
-        return _variables[ _source.substring( _start, _index ) ] 
+        label = _source.substring( _start, _index )
+        return _constants[ label ] | _variables[ label ]
     }
     throw 'unexpected token [factor]'
 }
 
 function number() {
     _start = _index
+    if ( _source[ _index ] === '+' || _source[ _index ] === '-' ) ++_index
     while ( _source[ _index ] >= '0' && _source[ _index ] <= '9' ) ++_index
     if ( _source[ _index ] === '.' ) {
         ++_index
