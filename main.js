@@ -36,45 +36,70 @@ function program() {
         ++_index
         trivia()
         if ( _source[ _index ] === undefined ) return
-        throw 'contents after end of program'
+        throw 'contents after end of program .'
     }
-    throw 'end of expression ; or end of program . expected' + _source.substr( _index, 16 )
+    throw 'end of expression ; or end of program . expected'
 }
 
 function block() {
-    trivia()
+    var label, reset
     for ( ;; ) {
         trivia()
-        if      ( procedure() )        { }
-        else if ( statement( true ) )  { }
-        trivia()
-        if ( _source[ _index ] === ';' ) {
+        reset = _index
+        if ( _source[   _index ] === 'c' && _source[ ++_index ] === 'o' &&
+             _source[ ++_index ] === 'n' && _source[ ++_index ] === 's' &&
+             _source[ ++_index ] === 't' ) {
             ++_index
-            continue
-        }
-        else break
-    }
-}
-
-function procedure() {
-    var reset = _index
-    if ( _source[   _index ] === 'p' && _source[ ++_index ] === 'r' &&
-         _source[ ++_index ] === 'o' && _source[ ++_index ] === 'c' &&
-         _source[ ++_index ] === 'e' && _source[ ++_index ] === 'd' &&
-         _source[ ++_index ] === 'u' && _source[ ++_index ] === 'r' &&
-         _source[ ++_index ] === 'e' ) {
-        ++_index
-        if ( trivia() ) {
-            if ( identifier() ) {
-                _functions[ _source.substring( _start, _index ) ] = _index
-                trivia()
-                beginend( false )
-                return true
+            if ( trivia() ) {
+                if ( identifier() ) {
+                    label = _source.substring( _start, _index );
+                    trivia()
+                    if ( _source[ index ] === '=' ) {
+                        ++_index
+                        if ( number() ) _constants[ label ] = parseFloat( _source.substring( _start, _index ) )
+                    }
+                    throw 'number expected after constant assignment'
+                }
             }
         }
+        else if ( _source[   _index ] === 'p' && _source[ ++_index ] === 'r' &&
+                  _source[ ++_index ] === 'o' && _source[ ++_index ] === 'c' &&
+                  _source[ ++_index ] === 'e' && _source[ ++_index ] === 'd' &&
+                  _source[ ++_index ] === 'u' && _source[ ++_index ] === 'r' &&
+                  _source[ ++_index ] === 'e' ) {
+            ++_index
+            if ( trivia() ) {
+                if ( identifier() ) {
+                    _functions[ _source.substring( _start, _index ) ] = _index
+                    trivia()
+                    beginend( false )
+                    return true
+                }
+            }
+            else _index = reset
+        }
+        else if ( _source[   _index ] === 'v' && _source[ ++_index ] === 'a' &&
+                  _source[ ++_index ] === 'r' ) {
+            ++_index
+            if ( trivia() ) {
+                if ( identifier() ) {
+                    _variables[ _source.substring( _start, _index ) ] = null
+                    continue
+                }
+                throw 'identifier expected in variable declaration'
+            }
+            else _index = reset
+        }
+        if ( statement( true ) ) return true
+        else {
+            trivia()
+            if ( _source[ _index ] === ';' ) {
+                ++_index
+                continue
+            }
+            else break
+        }
     }
-    _index = reset
-    return false
 }
 
 function statement( evaluate ) {
@@ -85,19 +110,19 @@ function statement( evaluate ) {
     else if ( ifthen     ( evaluate ) ) return
     else if ( proccall   ( evaluate ) ) return
     else if ( whiledo    ( evaluate ) ) return
-    throw 'unexpected token [statement] ' + _source.substr( _index, 16 )
+    throw 'unexpected token in statement'
 }
 
 function assignment( evaluate ) {
-    var name, result, reset = _index
+    var label, result, reset = _index
     if ( identifier( evaluate ) ) {
-        name = _source.substring( _start, _index )
+        label = _source.substring( _start, _index )
         trivia()
         if ( _source[ _index ] === ':' && _source[ ++_index ] === '=' ) {
             ++_index
             trivia()
             result = expression( evaluate )
-            if ( evaluate ) _variables[ name ] = result
+            if ( evaluate ) _variables[ label ] = result
             return true
         }
     }
@@ -140,7 +165,7 @@ function proccall( evaluate ) {
         ++_index
         if ( trivia() ) {
             if ( identifier() ) {
-                tail  = _index
+                tail = _index
                 _index = _functions[ _source.substring( _start, _index ) ]
                 statement( evaluate )
                 _index = tail
@@ -182,9 +207,9 @@ function ifthen( evaluate ) {
                     statement( result )
                     return true
                 }
-                throw 'statement expected after then'
+                else throw 'statement expected after then'
             }
-            throw 'then expected after condition'
+            else throw 'then expected after condition'
         }
     }
     _index = reset
