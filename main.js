@@ -19,7 +19,7 @@ function run() {
     }
 }
 
-document.getElementById( 'run' ).onclick = run
+document.getElementById( 'source' ).onkeyup = run
 run()
 
 function assert( message ) {
@@ -27,7 +27,7 @@ function assert( message ) {
 }
 
 function clear() {
-    document.getElementById( 'output' ).innerHTML = ''
+    document.getElementById( 'output' ).innerHTML = 'output<br>------<br><br>'
 }
 
 function error( message ) {
