@@ -2,7 +2,9 @@
 JavaScript implementation of PL/0. Based on the PL/0 programming language from Algorithms + Data Structures = Programs by Niklaus Wirth.
 
 ## Roadmap
-Functionally complete. New documentation and testing underway.  
+Functionally complete.  
+New documentation and testing underway.  
+Release candidate on the 16/08/2019.  
 
 ## Example program
 ```
@@ -26,18 +28,18 @@ begin
 end.
 ```
 
-| Token  | Description          |
-| :----: | -------------------: |
-| :=     | Assignment           |
-| !      | Echo                 |
-| =      | Equals               |
-| #      | Not Equal            |
-| ;      | Seperate Expressions |
-| .      | End Of Program       |
-| +      | Plus                 |
-| -      | Minus                |
-| *      | Multiply             |
-| /      | Divide               |
+| Token  | Description               |
+| :----: | ------------------------: |
+| :=     | Assignment                |
+| !      | Print                     |
+| #      | Not Equal                 |
+| =      | Equals or Assign Constant |
+| ;      | Seperate Expressions      |
+| .      | End Of Program            |
+| +      | Plus                      |
+| -      | Minus                     |
+| *      | Multiply                  |
+| /      | Divide                    |
 
 ## EBNF-like Grammar
  
