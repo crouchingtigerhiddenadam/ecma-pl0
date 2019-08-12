@@ -1,11 +1,6 @@
 # ECMA PL/0
 JavaScript implementation of PL/0. Based on the PL/0 programming language from Algorithms + Data Structures = Programs by Niklaus Wirth.
 
-## Roadmap
-Functionally complete.  
-New documentation and testing underway.  
-Release candidate on the 16/08/2019.  
-
 ## Example program
 ```
 const z = 1;
