@@ -3,7 +3,7 @@ const MAX_ITERATIONS = 100
 var _index,
     _source,
     _start,
-    _vars = [],
+    _variables = []
 
 function run() {
     _source = document.getElementById( 'source' ).value
@@ -12,8 +12,8 @@ function run() {
     try {
         program()
     }
-    catch ( exception ) {
-        assert( exception )
+    catch ( exp ) {
+        assert( exp )
     }
 }
 
@@ -64,7 +64,7 @@ function procedure() {
         ++_index
         if ( trivia() ) {
             if ( identifier() ) {
-                _vars[ _source.substring( _start, _index ) ] = _index
+                _variables[ _source.substring( _start, _index ) ] = _index
                 trivia()
                 beginend( false )
                 return true
@@ -87,15 +87,15 @@ function statement( evaluate ) {
 }
 
 function assignment( evaluate ) {
-    var label, reset = _index, result
+    var name, result, reset = _index
     if ( identifier( evaluate ) ) {
-        label = _source.substring( _start, _index )
+        name = _source.substring( _start, _index )
         trivia()
         if ( _source[ _index ] === ':' && _source[ ++_index ] === '=' ) {
             ++_index
             trivia()
             result = expression( evaluate )
-            if ( evaluate ) _vars[ label ] = result
+            if ( evaluate ) _variables[ name ] = result
             return true
         }
     }
@@ -132,14 +132,14 @@ function beginend( evaluate ) {
 }
 
 function proccall( evaluate ) {
-    var reset = _index, tail
+    var tail, reset = _index
     if ( _source[   _index ] === 'c' && _source[ ++_index ] === 'a' &&
          _source[ ++_index ] === 'l' && _source[ ++_index ] === 'l' ) {
         ++_index
         if ( trivia() ) {
             if ( identifier() ) {
                 tail  = _index
-                _index = _vars[ _source.substring( _start, _index ) ]
+                _index = _variables[ _source.substring( _start, _index ) ]
                 statement( evaluate )
                 _index = tail
                 return true
@@ -151,7 +151,7 @@ function proccall( evaluate ) {
 }
 
 function echo( evaluate ) {
-    var reset = _index, result
+    var result, reset = _index
     if ( _source[   _index ] === '!' || _source[   _index ] === 'e' &&
          _source[ ++_index ] === 'c' && _source[ ++_index ] === 'h' &&
          _source[ ++_index ] === 'o' ) {
@@ -168,7 +168,7 @@ function echo( evaluate ) {
 }
 
 function ifthen( evaluate ) {
-    var reset = _index, result
+    var result, reset = _index
     if ( _source[ _index ] === 'i' && _source[ ++_index ] === 'f' ) {
         ++_index
         if ( trivia() ) {
@@ -190,7 +190,7 @@ function ifthen( evaluate ) {
 }
 
 function whiledo( evaluate ) {
-    var reset = _index, iter = 0, result, head
+    var head, result, iteration = 0, reset = _index
     if ( _source[   _index ] === 'w' && _source[ ++_index ] === 'h' &&
          _source[ ++_index ] === 'i' && _source[ ++_index ] === 'l' &&
          _source[ ++_index ] === 'e' ) {
@@ -203,9 +203,9 @@ function whiledo( evaluate ) {
                     ++_index
                     if ( trivia() ) {
                         statement( result )
-                        if ( result && iter < MAX_ITERATIONS ) {
+                        if ( result && iteration < MAX_ITERATIONS ) {
                             _index = head
-                            ++iter
+                            ++iteration
                             continue
                         }
                         else return true
@@ -214,7 +214,6 @@ function whiledo( evaluate ) {
                 }
                 throw 'do expected after condition'
             }
-            return true
         }
     }
     _index = reset
@@ -222,86 +221,103 @@ function whiledo( evaluate ) {
 }
 
 function condition( evaluate ) {
-    var result, operand
-    result = expression( evaluate )
+    var operand1, operand2, reset = _index
+    trivia()
+    if ( _source[   _index ] === 'o' && _source[ ++_index ] === 'd' &&
+         _source[ ++_index ] === 'd' ) {
+        ++_index
+        if ( trivia() ) {
+            operand1 = expression( evaluate )
+            if ( evaluate ) return operand1 % 2 !== 0
+            return false
+        }
+    }
+    _index = reset
+    operand1 = expression( evaluate )
     if ( _source[ _index ] === '=' ) {
         ++_index
-        operand = expression( evaluate )
-        if ( evaluate ) return result === operand
+        operand2 = expression( evaluate )
+        if ( evaluate ) return operand1 === operand2
+        return false
     }
     else if ( _source[ _index ] === '#' ) {
         ++_index
-        operand = expression( evaluate )
-        if ( evaluate ) return result === operand
+        operand2 = expression( evaluate )
+        if ( evaluate ) return operand1 === operand2
+        return false
     }
     else if ( _source[ _index ] === '<' ) {
         ++_index
         if ( _source[ _index ] === '=' ) {
-            operand = expression( evaluate )
-            if ( evaluate ) return result <= operand
+            operand2 = expression( evaluate )
+            if ( evaluate ) return operand1 <= operand2
+            return false
         }
         else {
-            operand = expression( evaluate )
-            if ( evaluate ) return result < operand
+            operand2 = expression( evaluate )
+            if ( evaluate ) return operand1 < operand2
+            return false
         }
     }
     else if ( _source[ _index ] === '>' ) {
         ++_index
         if ( _source[ _index ] === '=' ) {
-            operand = expression( evaluate )
-            if ( evaluate ) return result >= operand
+            operand2 = expression( evaluate )
+            if ( evaluate ) return operand1 >= operand2
+            return false
         }
         else {
-            operand = expression( evaluate )
-            if ( evaluate ) return result > operand
+            operand2 = expression( evaluate )
+            if ( evaluate ) return operand1 > operand2
+            return false
         }
     }
     throw 'unexpected token [condition]'
 }
 
 function expression( evaluate ) {
-    var result, operand
-    result = term( evaluate )
+    var operand1, operand2
+    operand1 = term( evaluate )
     for ( ;; ) {
         if ( _source[ _index ] === '+' ) {
             ++_index
-            operand = term( evaluate )
-            if ( evaluate ) result += operand
+            operand2 = term( evaluate )
+            if ( evaluate ) operand1 += operand2
             continue
         }
         else if ( _source[ _index ] === '-' ) {
             ++_index
-            operand = term( evaluate )
-            if ( evaluate ) result -= operand
+            operand2 = term( evaluate )
+            if ( evaluate ) operand1 -= operand2
             continue
         }
         else break
     }
-    return result
+    return operand1
 }
 
 function term( evaluate ) {
-    var result, operand
-    result = factor( evaluate )
+    var operand1, operand2
+    operand1 = factor( evaluate )
     for ( ;; ) {
         trivia()
         if ( _source[ _index ] === '*' ) {
             ++_index
             trivia()
-            operand = factor( evaluate )
-            if ( evaluate ) result *= operand
+            operand2 = factor( evaluate )
+            if ( evaluate ) operand1 *= operand2
             continue
         }
         else if ( _source[ _index ] === '/' ) {
             ++_index
             trivia()
-            operand = factor( evaluate )
-            if ( evaluate ) result /= operand
+            operand2 = factor( evaluate )
+            if ( evaluate ) operand1 /= operand2
             continue
         }
         else break
     }
-    return result
+    return operand1
 }
 
 function factor( evaluate ) {
@@ -323,7 +339,7 @@ function factor( evaluate ) {
         return parseFloat( _source.substring( _start, _index ) )
     }
     else if ( identifier() ) {
-        return _vars[ _source.substring( _start, _index ) ] 
+        return _variables[ _source.substring( _start, _index ) ] 
     }
     throw 'unexpected token [factor]'
 }

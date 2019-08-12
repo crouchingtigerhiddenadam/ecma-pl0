@@ -2,7 +2,6 @@
 JavaScript implementation of PL/0. Based on the PL/0 programming language from Algorithms + Data Structures = Programs by Niklaus Wirth.
 
 ## Notes
-The `odd` condition is currently not implemented, but will be in the next push.
 The `const` and `var` statements are currently not implemented or required.
 The `echo` statement replaces the original `!` statement, though `!` can still be used.
 
@@ -13,7 +12,7 @@ procedure pr
 begin
     echo 42 + 21 + x
 end;
-if x = 1 then
+if odd x then
 begin
     i := 1 + 2 * 3 + 4;
     echo i+4;
