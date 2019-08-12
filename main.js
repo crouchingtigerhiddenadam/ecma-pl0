@@ -30,15 +30,29 @@ function clear() {
     document.getElementById( 'output' ).innerHTML = ''
 }
 
+function error( message ) {
+    var column = 0, line = 0, index = 0
+    while ( index < _index ) {
+        if      ( _source[ index ] === '\r' ) { }
+        else if ( _source[ index ] === '\n' ) {
+            column = 0
+            ++line
+        }
+        else ++column
+        ++index
+    }
+    throw message + ' (line: ' + line + ', column: ' + column + ')'
+}
+
 function program() {
     block()
     if ( _source[ _index ] === '.' ) {
         ++_index
         trivia()
         if ( _source[ _index ] === undefined ) return
-        throw 'contents after end of program'
+        error( 'contents after end of program' )
     }
-    throw 'end of expression ; or end of program . expected' + _source.substr( _index, 16 )
+    error( 'end of expression ; or end of program . expected' )
 }
 
 function block() {
@@ -68,7 +82,7 @@ function constants() {
             for ( ;; ) {
                 if ( identifier() ) {
                     label = _source.substring( _start, _index )
-                    if ( _variables[ label ] !== undefined ) throw 'const and var have the same label'
+                    if ( _variables[ label ] !== undefined ) error( 'const and var have the same label' )
                     trivia()
                     if ( _source[ _index ] === '=' ) {
                         ++_index
@@ -83,11 +97,11 @@ function constants() {
                             }
                             else return true
                         }
-                        else throw 'syntax'
+                        else error( 'syntax error: number expected after equals =' )
                     }
-                    else throw 'syntax error'
+                    else error( 'syntax error: equals = expected after identifier' )
                 }
-                else throw 'syntax error'
+                else error( 'syntax error: identifier expected after const' )
             }
         }
     }
@@ -104,7 +118,7 @@ function variables() {
             for ( ;; ) {
                 if ( identifier() ) {
                     label = _source.substring( _start, _index )
-                    if ( _constants[ label ] !== undefined ) throw 'var and const have the same label'
+                    if ( _constants[ label ] !== undefined ) error( 'var and const have the same label' )
                     _variables[ label ] = null
                     trivia()
                     if ( _source[ _index ] === ',' ) {
@@ -114,7 +128,7 @@ function variables() {
                     }
                     else return true
                 }
-                else throw 'syntax error'
+                else error( 'syntax error: identifier expected after var' )
             }
         }
     }
@@ -151,7 +165,7 @@ function statement( evaluate ) {
     else if ( ifthen     ( evaluate ) ) return
     else if ( call       ( evaluate ) ) return
     else if ( whiledo    ( evaluate ) ) return
-    throw 'unexpected token [statement] ' + _source.substr( _index, 16 )
+    error( 'syntax error: unexpected token in statement' )
 }
 
 function assignment( evaluate ) {
@@ -162,12 +176,13 @@ function assignment( evaluate ) {
         if ( _source[ _index ] === ':' && _source[ ++_index ] === '=' ) {
             ++_index
             trivia()
+            if ( _constants[ label ] !== undefined ) error ( 'syntax error: cannot assign variables to constants' )
             if ( _variables[ label ] !== undefined ) {
                 result = expression( evaluate )
                 if ( evaluate ) _variables[ label ] = result
                 return true
             }
-            else throw 'variable ' + label + ' is not defined'
+            else error( 'undefined variable: ' + label )
         }
     }
     _index = reset
@@ -196,7 +211,7 @@ function beginend( evaluate ) {
                 return true
             }
         }
-        throw 'end or ; expected'
+        error( 'syntax error: end or seperator ; expected' )
     }
     _index = reset
     return false
@@ -223,7 +238,7 @@ function call( evaluate ) {
 
 function print( evaluate ) {
     var result, reset = _index
-    if ( _source[   _index ] === '!' ) {
+    if ( _source[ _index ] === '!' ) {
         ++_index
         trivia()
         result = expression( evaluate )
@@ -247,9 +262,9 @@ function ifthen( evaluate ) {
                     statement( result )
                     return true
                 }
-                throw 'statement expected after then'
+                error( 'syntax error: statement expected after then' )
             }
-            throw 'then expected after condition'
+            error( 'syntax error: then expected after condition' )
         }
     }
     _index = reset
@@ -277,9 +292,9 @@ function whiledo( evaluate ) {
                         }
                         else return true
                     }
-                    throw 'statement expected after do'
+                    error( 'syntax error: statement expected after do' )
                 }
-                throw 'do expected after condition'
+                error( 'syntax error: do expected after condition' )
             }
         }
     }
@@ -339,7 +354,7 @@ function condition( evaluate ) {
             return false
         }
     }
-    throw 'unexpected token [condition]'
+    error( 'syntax error: unexpected token in condition' )
 }
 
 function expression( evaluate ) {
@@ -392,15 +407,13 @@ function factor( evaluate ) {
     trivia()
     if ( _source[ _index ] === '(' ) {
         ++_index
-        if ( result = expression( evaluate ) ) {
-            trivia()
-            if ( _source[ _index ] === ')' ) {
-                ++_index
-                return result
-            }
-            throw ') expected'
+        result = expression( evaluate )
+        trivia()
+        if ( _source[ _index ] === ')' ) {
+            ++_index
+            return result
         }
-        throw 'unexpected token [paranthesis]'
+        error( 'syntax error: end paranthesis ) expected' )
     }
     else if ( number() ) {
         return parseFloat( _source.substring( _start, _index ) )
@@ -409,7 +422,7 @@ function factor( evaluate ) {
         label = _source.substring( _start, _index )
         return _constants[ label ] | _variables[ label ]
     }
-    throw 'unexpected token [factor]'
+    error( 'syntax error: unexpected token in factor' )
 }
 
 function number() {
@@ -422,7 +435,7 @@ function number() {
             ++_index
             while ( _source[ _index ] >= '0' && _source[ _index ] <= '9' ) ++_index
         }
-        else throw 'digits expected after decimal point'
+        else error( 'syntax error: digits expected after decimal point' )
     }
     return _start < _index
 }

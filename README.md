@@ -2,7 +2,7 @@
 JavaScript implementation of PL/0. Based on the PL/0 programming language from Algorithms + Data Structures = Programs by Niklaus Wirth.
 
 ## Roadmap
-Functionally complete with error messages, documentation and testing underway.  
+Functionally complete. New documentation and testing underway.  
 
 ## Example program
 ```
