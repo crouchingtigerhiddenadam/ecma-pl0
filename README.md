@@ -44,7 +44,7 @@ end.
 ## EBNF-like Grammar
 ```
 program =
-  block "." .`
+  block "." .
 
 block =
   ["const" identifier "=" number {"," ident "=" number} ";"]  
