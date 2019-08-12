@@ -42,48 +42,35 @@ end.
 | /      | Divide                    |
 
 ## EBNF-like Grammar
- 
-#### program 
 ```
-block "." .`
-```
-  
-#### block (const and var to be implemented)
-```
-["const" identifier "=" number {"," ident "=" number} ";"]  
-["var" identifier {"," identifier} ";"]  
-{"procedure" identifier ";" block ";"} statement .  
-```
-  
-#### statement
-```
-identifier ":=" expression  
-| "call" identifier  
-| "begin" statement {";" statement } "end"  
-| "echo" expression
-| "if" condition "then" statement  
-| "while" condition "do" statement .  
-```
+program =
+  block "." .`
 
-#### condition
-```
-"odd" expression  
-| expression ("="|"#"|"<"|"<="|">"|">=") expression .  
-```
+block =
+  ["const" identifier "=" number {"," ident "=" number} ";"]  
+  ["var" identifier {"," identifier} ";"]  
+  {"procedure" identifier ";" block ";"} statement .  
 
-#### expression
-```
-term {("+"|"-") term} .  
-```
-  
-#### term
-```
-factor {("*"|"/") factor} .  
-```
-  
-#### factor
-```
-identifier  
-| number  
-| "(" expression ")" .  
+statement =
+  identifier ":=" expression  
+  | "call" identifier  
+  | "begin" statement {";" statement } "end"  
+  | "echo" expression
+  | "if" condition "then" statement  
+  | "while" condition "do" statement .  
+
+condition =
+  "odd" expression  
+  | expression ("="|"#"|"<"|"<="|">"|">=") expression .  
+
+expression =
+  term {("+"|"-") term} .  
+
+term =
+  factor {("*"|"/") factor} .  
+
+factor =
+  identifier  
+  | number  
+  | "(" expression ")" .  
 ```
