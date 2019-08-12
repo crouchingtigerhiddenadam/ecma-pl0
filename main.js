@@ -45,7 +45,8 @@ function block() {
     trivia()
     for ( ;; ) {
         trivia()
-        if      ( procedure() )        { }
+        if      ( declaration() )      { }
+        else if ( procedure() )        { }
         else if ( statement( true ) )  { }
         trivia()
         if ( _source[ _index ] === ';' ) {
@@ -54,6 +55,28 @@ function block() {
         }
         else break
     }
+}
+
+function declaration() {
+    var reset = _index
+    if ( _source[   _index ] === 'v' && _source[ ++_index ] === 'a' &&
+         _source[ ++_index ] === 'r' ) {
+        ++_index
+        if ( trivia() ) {
+            for ( ;; ) {
+                if ( identifier() ) _variables[ _source.substring( _start, _index ) ] = null
+                trivia()
+                if ( _source[ _index ] === ',' ) {
+                    ++_index
+                    trivia()
+                    continue
+                }
+                else return true
+            }
+        }
+    }
+    _index = reset
+    return false
 }
 
 function procedure() {
@@ -81,24 +104,27 @@ function statement( evaluate ) {
     trivia()
     if      ( assignment ( evaluate ) ) return
     else if ( beginend   ( evaluate ) ) return
-    else if ( echo       ( evaluate ) ) return
+    else if ( print      ( evaluate ) ) return
     else if ( ifthen     ( evaluate ) ) return
-    else if ( proccall   ( evaluate ) ) return
+    else if ( call       ( evaluate ) ) return
     else if ( whiledo    ( evaluate ) ) return
     throw 'unexpected token [statement] ' + _source.substr( _index, 16 )
 }
 
 function assignment( evaluate ) {
-    var name, result, reset = _index
+    var label, result, reset = _index
     if ( identifier( evaluate ) ) {
-        name = _source.substring( _start, _index )
+        label = _source.substring( _start, _index )
         trivia()
         if ( _source[ _index ] === ':' && _source[ ++_index ] === '=' ) {
             ++_index
             trivia()
-            result = expression( evaluate )
-            if ( evaluate ) _variables[ name ] = result
-            return true
+            if ( _variables[ label ] !== undefined ) {
+                result = expression( evaluate )
+                if ( evaluate ) _variables[ label ] = result
+                return true
+            }
+            else throw 'variable ' + label + ' is not defined'
         }
     }
     _index = reset
@@ -133,7 +159,7 @@ function beginend( evaluate ) {
     return false
 }
 
-function proccall( evaluate ) {
+function call( evaluate ) {
     var tail, reset = _index
     if ( _source[   _index ] === 'c' && _source[ ++_index ] === 'a' &&
          _source[ ++_index ] === 'l' && _source[ ++_index ] === 'l' ) {
@@ -152,18 +178,14 @@ function proccall( evaluate ) {
     return false
 }
 
-function echo( evaluate ) {
+function print( evaluate ) {
     var result, reset = _index
-    if ( _source[   _index ] === '!' || _source[   _index ] === 'e' &&
-         _source[ ++_index ] === 'c' && _source[ ++_index ] === 'h' &&
-         _source[ ++_index ] === 'o' ) {
+    if ( _source[   _index ] === '!' ) {
         ++_index
-        if ( trivia() ) {
-            result = expression( evaluate )
-            if ( evaluate ) assert( result )
-            return true
-        }
-        throw 'expression expected after echo'
+        trivia()
+        result = expression( evaluate )
+        if ( evaluate ) assert( result )
+        return true
     }
     _index = reset
     return false
@@ -192,16 +214,17 @@ function ifthen( evaluate ) {
 }
 
 function whiledo( evaluate ) {
+    assert( 'whiledo( ' + evaluate + ' )' )
     var head, result, iteration = 0, reset = _index
     if ( _source[   _index ] === 'w' && _source[ ++_index ] === 'h' &&
          _source[ ++_index ] === 'i' && _source[ ++_index ] === 'l' &&
          _source[ ++_index ] === 'e' ) {
         ++_index
         if ( trivia() ) {
-            head   = _index
+            head = _index
             for ( ;; ) {
                 result = condition( evaluate )
-                if ( _source[   _index ] === 'd' && _source[ ++_index ] === 'o' ) {
+                if ( _source[ _index ] === 'd' && _source[ ++_index ] === 'o' ) {
                     ++_index
                     if ( trivia() ) {
                         statement( result )
@@ -245,7 +268,7 @@ function condition( evaluate ) {
     else if ( _source[ _index ] === '#' ) {
         ++_index
         operand2 = expression( evaluate )
-        if ( evaluate ) return operand1 === operand2
+        if ( evaluate ) return operand1 !== operand2
         return false
     }
     else if ( _source[ _index ] === '<' ) {
@@ -367,7 +390,8 @@ function identifier() {
         _start = _index
         ++_index
         while ( _source[ _index ] >= 'A' && _source[ _index ] <= 'Z' ||
-                _source[ _index ] >= 'a' && _source[ _index ] <= 'z' ) ++_index
+                _source[ _index ] >= 'a' && _source[ _index ] <= 'z' ||
+                _source[ _index ] >= '0' && _source[ _index ] <= '9' ) ++_index
         return true
     }
     _index = _start
