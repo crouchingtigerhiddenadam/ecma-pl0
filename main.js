@@ -214,7 +214,6 @@ function ifthen( evaluate ) {
 }
 
 function whiledo( evaluate ) {
-    assert( 'whiledo( ' + evaluate + ' )' )
     var head, result, iteration = 0, reset = _index
     if ( _source[   _index ] === 'w' && _source[ ++_index ] === 'h' &&
          _source[ ++_index ] === 'i' && _source[ ++_index ] === 'l' &&
